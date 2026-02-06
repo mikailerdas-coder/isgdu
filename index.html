@@ -1,42 +1,21 @@
 <!doctype html>
 <html lang="tr" class="h-full">
  <head>
-
-  head>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#2563eb"> <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+  
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>İSG Denetim Uygulaması</title>
-
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#2563eb">
-  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
-  <link id="manifest-placeholder" rel="manifest">
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-  <script>
-    // Manifest oluşturucu (Bu kısım senin kodunda eksikti)
-    (function() {
-      const manifest = {
-        "name": "İSG Denetim Sistemi",
-        "short_name": "İSG Form",
-        "start_url": ".",
-        "display": "standalone",
-        "background_color": "#ffffff",
-        "theme_color": "#2563eb",
-        "icons": [{"src": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png", "sizes": "512x512", "type": "image/png"}]
-      };
-      const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-      document.querySelector('#manifest-placeholder').setAttribute('href', URL.createObjectURL(blob));
-    })();
-  </script>
-
-<style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
     body {
       box-sizing: border-box;
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
