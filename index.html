@@ -1,175 +1,51 @@
 <!doctype html>
 <html lang="tr" class="h-full">
  <head>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#2563eb"> <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"> ```
 
-
-  
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+  <meta name="viewport" content="width=device-ui, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>İSG Denetim Uygulaması</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
-  <style>
-    body {
-      box-sizing: border-box;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    }
-    
-    .question-card {
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      border-radius: 16px;
-      border: 1px solid #e5e7eb;
-      background: white;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-    .question-card:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    }
-    @keyframes borderBlink {
-      0%, 100% { box-shadow: 0 0 0 4px rgba(220, 38, 38, 0); }
-      50% { box-shadow: 0 0 0 4px rgba(220, 38, 38, 1); }
-    }
-    .blink-border {
-      animation: borderBlink 0.5s ease-in-out 4;
-    }
-    .question-card.answer-yes {
-      border-color: #10b981;
-      background: linear-gradient(to bottom, white, #f0fdf4);
-    }
-    .question-card.answer-no {
-      border-color: #ef4444;
-      background: linear-gradient(to bottom, white, #fef2f2);
-    }
-    .question-card.answer-na {
-      border-color: #eab308;
-      border-width: 1px;
-      background: linear-gradient(to bottom, white, #fefce8);
-    }
-    .btn-answer {
-      border: 2px solid;
-      background: white;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      font-weight: 500;
-      letter-spacing: -0.01em;
-    }
-    .btn-answer:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-    .btn-yes { color: #059669; border-color: #10b981; }
-    .btn-yes.selected { background: #10b981; color: white; border-color: #10b981; }
-    .btn-no { color: #dc2626; border-color: #ef4444; }
-    .btn-no.selected { background: #ef4444; color: white; border-color: #ef4444; }
-    .btn-na { color: #eab308; border-color: #eab308; }
-    .btn-na.selected { background: #eab308; color: white; border-color: #eab308; }
-    
-    .toast {
-      position: fixed;
-      top: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #18181b;
-      color: white;
-      padding: 14px 28px;
-      border-radius: 12px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-      z-index: 1000;
-      font-weight: 500;
-      font-size: 14px;
-      letter-spacing: -0.01em;
-      animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(-10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-      }
-    }
-    
-    .tab-button {
-      position: relative;
-      padding: 16px 24px;
-      font-weight: 500;
-      transition: all 0.2s;
-      border-bottom: 2px solid transparent;
-      color: #64748b;
-      letter-spacing: -0.01em;
-    }
-    .tab-button:hover {
-      color: #334155;
-    }
-    .tab-button.active {
-      color: #18181b;
-      border-bottom-color: #18181b;
-    }
-    
-    .modern-input {
-      transition: all 0.2s;
-    }
-    .modern-input:focus {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-    
-    .modern-btn {
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      letter-spacing: -0.01em;
-    }
-    .modern-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-    }
-    .modern-btn:active {
-      transform: translateY(0);
-    }
-    
-    .unanswered-warning {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #dc2626;
-      color: white;
-      padding: 12px 24px;
-      border-radius: 12px;
-      font-weight: 600;
-      font-size: 14px;
-      text-align: center;
-      animation: fadeInScale 0.3s ease-out;
-      z-index: 100;
-      box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
-      width: calc(100% - 32px);
-      max-width: 400px;
-    }
-    
-    @keyframes fadeInScale {
-      from {
-        opacity: 0;
-        transform: translateX(-50%) scale(0.8);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(-50%) scale(1);
-      }
-    }
-  </style>
-  <style>@view-transition { navigation: auto; }</style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
-  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#2563eb">
+  <link rel="apple-touch-icon" href="[https://cdn-icons-png.flaticon.com/512/3135/3135715.png](https://cdn-icons-png.flaticon.com/512/3135/3135715.png)">
+  
+  <link id="manifest-placeholder" rel="manifest">
+
+  <script>
+    // Dinamik Manifest Oluşturucu (Android ve Chrome için)
+    (function() {
+      const manifest = {
+        "name": "İSG Denetim Sistemi",
+        "short_name": "İSG Form",
+        "start_url": ".", 
+        "display": "standalone",
+        "background_color": "#ffffff",
+        "theme_color": "#2563eb",
+        "icons": [{
+          "src": "[https://cdn-icons-png.flaticon.com/512/3135/3135715.png](https://cdn-icons-png.flaticon.com/512/3135/3135715.png)",
+          "sizes": "512x512",
+          "type": "image/png",
+          "purpose": "any maskable"
+        }]
+      };
+      const stringManifest = JSON.stringify(manifest);
+      const blob = new Blob([stringManifest], {type: 'application/json'});
+      const manifestURL = URL.createObjectURL(blob);
+      document.querySelector('#manifest-placeholder').setAttribute('href', manifestURL);
+    })();
+  </script>
+
+  <script src="[https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js](https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js)"></script>
+  <script src="[https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js](https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js)"></script>
+  <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+  <link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)">
+  <link rel="preconnect" href="[https://fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
+  <link href="[https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap)" rel="stylesheet">
+
+
  </head>
  <body class="h-full bg-gray-50"><!-- Ana Sayfa -->
   <div id="home-page" class="h-full overflow-auto"><!-- Sabit Başlık ve Sekmeler -->
