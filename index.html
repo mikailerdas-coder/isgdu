@@ -1,0 +1,2633 @@
+<!doctype html>
+<html lang="tr" class="h-full">
+ <head>
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1162/1162456.png">
+
+  <script>
+
+    
+    // Manifest dosyasını dinamik olarak oluşturur (Android yükleme uyarısı için)
+    (function() {
+      const manifest = {
+        "name": "İSG Denetim Uygulaması",
+        "short_name": "İSG Form",
+        "start_url": window.location.href,
+        "display": "standalone",
+        "background_color": "#ffffff",
+        "theme_color": "#16a34a",
+        "icons": [{
+          "src": "https://cdn-icons-png.flaticon.com/512/1162/1162456.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }]
+      };
+      const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+      const link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = URL.createObjectURL(blob);
+      document.head.appendChild(link);
+    })();
+  </script>
+  
+
+
+
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#2563eb"> <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+
+
+  
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>İSG Denetim Uygulaması</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    body {
+      box-sizing: border-box;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    
+    .question-card {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 16px;
+      border: 1px solid #e5e7eb;
+      background: white;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    .question-card:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    @keyframes borderBlink {
+      0%, 100% { box-shadow: 0 0 0 4px rgba(220, 38, 38, 0); }
+      50% { box-shadow: 0 0 0 4px rgba(220, 38, 38, 1); }
+    }
+    .blink-border {
+      animation: borderBlink 0.5s ease-in-out 4;
+    }
+    .question-card.answer-yes {
+      border-color: #10b981;
+      background: linear-gradient(to bottom, white, #f0fdf4);
+    }
+    .question-card.answer-no {
+      border-color: #ef4444;
+      background: linear-gradient(to bottom, white, #fef2f2);
+    }
+    .question-card.answer-na {
+      border-color: #eab308;
+      border-width: 1px;
+      background: linear-gradient(to bottom, white, #fefce8);
+    }
+    .btn-answer {
+      border: 2px solid;
+      background: white;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+    .btn-answer:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .btn-yes { color: #059669; border-color: #10b981; }
+    .btn-yes.selected { background: #10b981; color: white; border-color: #10b981; }
+    .btn-no { color: #dc2626; border-color: #ef4444; }
+    .btn-no.selected { background: #ef4444; color: white; border-color: #ef4444; }
+    .btn-na { color: #eab308; border-color: #eab308; }
+    .btn-na.selected { background: #eab308; color: white; border-color: #eab308; }
+    
+    .toast {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #18181b;
+      color: white;
+      padding: 14px 28px;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      z-index: 1000;
+      font-weight: 500;
+      font-size: 14px;
+      letter-spacing: -0.01em;
+      animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+    
+    .tab-button {
+      position: relative;
+      padding: 16px 24px;
+      font-weight: 500;
+      transition: all 0.2s;
+      border-bottom: 2px solid transparent;
+      color: #64748b;
+      letter-spacing: -0.01em;
+    }
+    .tab-button:hover {
+      color: #334155;
+    }
+    .tab-button.active {
+      color: #18181b;
+      border-bottom-color: #18181b;
+    }
+    
+    .modern-input {
+      transition: all 0.2s;
+    }
+    .modern-input:focus {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    
+    .modern-btn {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      letter-spacing: -0.01em;
+    }
+    .modern-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+    .modern-btn:active {
+      transform: translateY(0);
+    }
+    
+    .unanswered-warning {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #dc2626;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      text-align: center;
+      animation: fadeInScale 0.3s ease-out;
+      z-index: 100;
+      box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
+      width: calc(100% - 32px);
+      max-width: 400px;
+    }
+    
+    @keyframes fadeInScale {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) scale(1);
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-gray-50"><!-- Ana Sayfa -->
+  <div id="home-page" class="h-full overflow-auto"><!-- Sabit Başlık ve Sekmeler -->
+   <div class="sticky top-0 z-20 bg-gray-50 pb-4">
+    <div class="max-w-4xl mx-auto p-4 pb-0"><!-- Başlık -->
+     <div class="text-center mb-4 pt-4">
+      <div class="bg-white border border-blue-300 rounded-3xl shadow-sm p-6">
+       <h2 class="text-3xl font-bold text-blue-900 mb-2 tracking-tight">İŞ SAĞLIĞI VE GÜVENLİĞİ</h2>
+       <p class="text-blue-900 font-medium">Ortam Gözetimi, Rehberlik ve Denetim Uygulaması</p>
+      </div>
+     </div><!-- Sekmeler -->
+     <div class="bg-white rounded-3xl shadow-sm border border-gray-200">
+      <div class="flex border-b border-gray-100"><button id="tab-new" class="tab-button flex-1 active" onclick="switchTab('new')">
+        <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="#3b82f6" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg> Yeni </button> <button id="tab-data" class="tab-button flex-1" onclick="switchTab('data')">
+        <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="#10b981" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg> Veri </button> <button id="tab-info" class="tab-button flex-1" onclick="switchTab('info')">
+        <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="#8b5cf6" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg> Bilgi </button>
+      </div>
+     </div>
+    </div>
+   </div><!-- İçerik Alanı -->
+   <div class="max-w-4xl mx-auto px-4 pb-20"><!-- Yeni Denetim İçeriği -->
+    <div id="content-new" class="p-8 bg-white rounded-3xl shadow-sm border border-gray-200">
+     <div class="space-y-5">
+      <div><label for="school-district" class="block text-sm font-medium text-gray-600 mb-2">İlçe *</label> <input type="text" id="school-district" class="modern-input w-full px-4 py-3.5 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" placeholder="Merkez">
+      </div>
+      <div><label for="school-name" class="block text-sm font-medium text-gray-600 mb-2">Okul Adı *</label> <input type="text" id="school-name" class="modern-input w-full px-4 py-3.5 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" placeholder="Atatürk İlkokulu">
+      </div>
+      <div><label for="school-code" class="block text-sm font-medium text-gray-600 mb-2">Okul Kodu *</label> <input type="text" id="school-code" class="modern-input w-full px-4 py-3.5 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" placeholder="123456">
+      </div>
+      <div><label for="audit-date" class="block text-sm font-medium text-gray-600 mb-2">Denetim Tarihi *</label> <input type="date" id="audit-date" class="modern-input w-full px-4 py-3.5 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none">
+      </div>
+      <div><label for="school-address" class="block text-sm font-medium text-gray-600 mb-2">Adresi</label> <input type="text" id="school-address" class="modern-input w-full px-4 py-3.5 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" placeholder="Okul adresi">
+      </div>
+      <div><label for="school-scope" class="block text-sm font-medium text-gray-600 mb-2">Kapsam</label> <select id="school-scope" class="modern-input w-full px-4 py-3.5 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none"> <option value="">Seçiniz</option> <option value="Anaokulu">Anaokulu</option> <option value="İlkokul">İlkokul</option> <option value="Ortaokul">Ortaokul</option> <option value="İlkokul/Ortaokul">İlkokul/Ortaokul</option> <option value="Anadolu Lisesi">Anadolu Lisesi</option> <option value="Anadolu İmam Hatip Lisesi">Anadolu İmam Hatip Lisesi</option> <option value="Fen Lisesi">Fen Lisesi</option> <option value="BİLSEM">BİLSEM</option> <option value="MESEM">MESEM</option> <option value="Mesleki ve Teknik Anadolu Lisesi">Mesleki ve Teknik Anadolu Lisesi</option> <option value="Yaygın Eğitim">Yaygın Eğitim</option> </select>
+      </div>
+      <div><label for="school-hazard-class" class="block text-sm font-medium text-gray-600 mb-2">Tehlike Sınıfı</label> <select id="school-hazard-class" class="modern-input w-full px-4 py-3.5 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none"> <option value="">Seçiniz</option> <option value="Az Tehlikeli">Az Tehlikeli</option> <option value="Tehlikeli">Tehlikeli</option> <option value="Çok Tehlikeli">Çok Tehlikeli</option> </select>
+      </div>
+      <div><label for="school-phone" class="block text-sm font-medium text-gray-600 mb-2">Telefon</label> <input type="tel" id="school-phone" class="modern-input w-full px-4 py-3.5 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" placeholder="0 (___) ___ __ __">
+      </div>
+      <div><label for="school-email" class="block text-sm font-medium text-gray-600 mb-2">E-Posta</label> <input type="email" id="school-email" class="modern-input w-full px-4 py-3.5 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" placeholder="okul@example.com">
+      </div><!-- Önceki Denetim Uyarısı -->
+      <div id="previous-audit-warning" class="hidden bg-orange-50 border border-orange-200 rounded-2xl p-5">
+       <div class="flex items-start gap-3">
+        <div class="text-xl">
+         ⚠️
+        </div>
+        <div class="flex-1">
+         <h3 class="font-semibold text-orange-800 mb-2">Önceki Denetimde Eksiklik Bulundu</h3>
+         <p class="text-sm text-orange-700 mb-3">Bu okul için daha önce yapılan denetimde tespit edilen ve henüz giderilmemiş eksiklikler bulunmaktadır.</p>
+         <div id="previous-deficiencies-list" class="space-y-2"></div>
+         <p class="text-xs text-orange-600 mt-3 italic">Bu eksiklikler yeni denetimde otomatik olarak işaretlenecektir.</p>
+        </div>
+       </div>
+      </div><button id="start-audit-btn" class="modern-btn w-full py-4 bg-blue-500 text-white font-medium rounded-2xl hover:bg-blue-600 transition text-base mt-2"> Denetime Başla </button>
+     </div>
+    </div><!-- Veri İçeriği -->
+    <div id="content-data" class="p-8 hidden bg-white rounded-3xl shadow-sm border border-gray-200"><!-- İstatistikler -->
+     <div class="mb-6">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 İstatistikler</h3>
+      <div id="statistics-container" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4"></div>
+     </div><!-- Denetim Listesi -->
+     <div>
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">📋 Kayıtlı Denetimler</h3>
+      <div id="audit-history" class="space-y-3"></div>
+     </div>
+    </div><!-- Bilgi İçeriği -->
+    <div id="content-info" class="p-8 hidden bg-white rounded-3xl shadow-sm border border-gray-200">
+     <div class="space-y-6"><!-- Uygulama Amacı -->
+      <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+       <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">🎯 Uygulama Amacı</h3>
+       <p class="text-gray-700 leading-relaxed">Bu uygulama, okullarda İş Sağlığı ve Güvenliği (İSG) denetimlerini dijital ortamda kolayca gerçekleştirmek, kayıt altına almak ve raporlamak için geliştirilmiştir. Denetim süreçlerini hızlandırır ve standartlaştırır.</p>
+      </div><!-- Özellikler -->
+      <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100">
+       <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">✨ Özellikler</h3>
+       <ul class="space-y-2 text-gray-700">
+        <li class="flex items-start gap-2"><span class="text-green-600 font-bold">✓</span> <span>6 ana kategoride toplam 35 İSG sorusu</span></li>
+        <li class="flex items-start gap-2"><span class="text-green-600 font-bold">✓</span> <span>Denetim sonuçlarını kaydetme ve geçmiş kayıtlara erişim</span></li>
+        <li class="flex items-start gap-2"><span class="text-green-600 font-bold">✓</span> <span>Eksiklikler için fotoğraf ekleme desteği</span></li>
+        <li class="flex items-start gap-2"><span class="text-green-600 font-bold">✓</span> <span>Özelleştirilebilir DÖF (Düzeltici Önleyici Faaliyet) metinleri</span></li>
+        <li class="flex items-start gap-2"><span class="text-green-600 font-bold">✓</span> <span>PDF rapor oluşturma ve indirme</span></li>
+        <li class="flex items-start gap-2"><span class="text-green-600 font-bold">✓</span> <span>Önceki denetimlerdeki eksiklikleri takip etme</span></li>
+        <li class="flex items-start gap-2"><span class="text-green-600 font-bold">✓</span> <span>İstatistiksel veri analizi</span></li>
+        <li class="flex items-start gap-2"><span class="text-green-600 font-bold">✓</span> <span>Tüm veriler tarayıcınızda güvenle saklanır</span></li>
+       </ul>
+      </div><!-- Nasıl Kullanılır -->
+      <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
+       <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">📖 Nasıl Kullanılır?</h3>
+       <ol class="space-y-2 text-gray-700 list-decimal list-inside">
+        <li><strong>Yeni</strong> sekmesinden okul bilgilerini girin</li>
+        <li><strong>Denetime Başla</strong> butonuna tıklayın</li>
+        <li>Her kategori için soruları cevaplayın (Evet/Hayır/Gerekli Değil)</li>
+        <li>Eksiklikler için fotoğraf ekleyin ve notlar alın</li>
+        <li>Tüm kategorileri tamamlayıp özeti görüntüleyin</li>
+        <li>Denetimi kaydedin veya PDF olarak indirin</li>
+        <li><strong>Veri</strong> sekmesinden geçmiş denetimleri inceleyin</li>
+       </ol>
+      </div><!-- Versiyon Bilgisi -->
+      <div class="bg-gradient-to-r from-gray-50 to-slate-50 rounded-2xl p-6 border border-gray-200">
+       <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">ℹ️ Versiyon Bilgileri</h3>
+       <div class="space-y-2 text-gray-700">
+        <div class="flex justify-between"><span class="font-medium">Versiyon:</span> <span class="font-bold">57.0.0</span>
+        </div>
+        <div class="flex justify-between"><span class="font-medium">Tarih:</span> <span>Ocak 2025</span>
+        </div>
+        <div class="flex justify-between"><span class="font-medium">Platform:</span> <span>Tüm Platformlar</span>
+        </div>
+       </div>
+       <div class="mt-4 pt-4 border-t border-gray-200">
+        <p class="text-sm text-gray-600 italic">💡 İpucu: Tüm verileriniz cihazınızda güvenle saklanır. Tarayıcı geçmişini temizlerseniz verileriniz silinebilir.</p>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div><!-- Personel Bilgileri Sayfası -->
+  <div id="personnel-page" class="hidden h-full overflow-auto">
+   <div class="max-w-4xl mx-auto p-4 pb-20">
+    <div class="bg-white rounded-3xl shadow-sm border border-gray-200 p-6 mb-4">
+     <h2 class="text-2xl font-bold text-gray-900 mb-2 text-center">OKUL/KURUM ÇALIŞAN SAYISI BİLGİLERİ</h2>
+     <p id="personnel-school-info" class="text-center text-gray-500"></p>
+    </div>
+    <div class="bg-white rounded-3xl shadow-sm border border-gray-200 p-6">
+     <div class="space-y-4">
+      <div><label for="manager-count" class="block text-sm font-medium text-gray-700 mb-2">Yönetici Sayısı *</label> <input type="number" id="manager-count" min="0" value="0" class="modern-input w-full px-4 py-3 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" oninput="calculateTotalPersonnel()">
+      </div>
+      <div><label for="teacher-count" class="block text-sm font-medium text-gray-700 mb-2">Öğretmen Sayısı *</label> <input type="number" id="teacher-count" min="0" value="0" class="modern-input w-full px-4 py-3 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" oninput="calculateTotalPersonnel()">
+      </div>
+      <div><label for="officer-count" class="block text-sm font-medium text-gray-700 mb-2">Memur Sayısı *</label> <input type="number" id="officer-count" min="0" value="0" class="modern-input w-full px-4 py-3 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" oninput="calculateTotalPersonnel()">
+      </div>
+      <div><label for="servant-count" class="block text-sm font-medium text-gray-700 mb-2">Hizmetli Sayısı *</label> <input type="number" id="servant-count" min="0" value="0" class="modern-input w-full px-4 py-3 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" oninput="calculateTotalPersonnel()">
+      </div>
+      <div><label for="worker-count" class="block text-sm font-medium text-gray-700 mb-2">İşçi Sayısı *</label> <input type="number" id="worker-count" min="0" value="0" class="modern-input w-full px-4 py-3 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" oninput="calculateTotalPersonnel()">
+      </div>
+      <div><label for="typ-count" class="block text-sm font-medium text-gray-700 mb-2">TYP'li Personel Sayısı *</label> <input type="number" id="typ-count" min="0" value="0" class="modern-input w-full px-4 py-3 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" oninput="calculateTotalPersonnel()">
+      </div>
+      <div><label for="paid-teacher-count" class="block text-sm font-medium text-gray-700 mb-2">Ücretli Öğretmen Sayısı *</label> <input type="number" id="paid-teacher-count" min="0" value="0" class="modern-input w-full px-4 py-3 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" oninput="calculateTotalPersonnel()">
+      </div>
+      <div><label for="contract-count" class="block text-sm font-medium text-gray-700 mb-2">Sözleşmeli Personel Sayısı *</label> <input type="number" id="contract-count" min="0" value="0" class="modern-input w-full px-4 py-3 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" oninput="calculateTotalPersonnel()">
+      </div>
+      <div><label for="master-instructor-count" class="block text-sm font-medium text-gray-700 mb-2">Usta Öğretici Sayısı *</label> <input type="number" id="master-instructor-count" min="0" value="0" class="modern-input w-full px-4 py-3 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" oninput="calculateTotalPersonnel()">
+      </div>
+      <div><label for="disabled-count" class="block text-sm font-medium text-gray-700 mb-2">Engelli Personel Sayısı *</label> <input type="number" id="disabled-count" min="0" value="0" class="modern-input w-full px-4 py-3 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" oninput="calculateTotalPersonnel()">
+      </div>
+      <div><label for="exconvict-count" class="block text-sm font-medium text-gray-700 mb-2">Eski Hükümlü Personel Sayısı *</label> <input type="number" id="exconvict-count" min="0" value="0" class="modern-input w-full px-4 py-3 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" oninput="calculateTotalPersonnel()">
+      </div>
+      <div><label for="chronic-count" class="block text-sm font-medium text-gray-700 mb-2">Süreğen Kronik Hasta Personel Sayısı *</label> <input type="number" id="chronic-count" min="0" value="0" class="modern-input w-full px-4 py-3 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" oninput="calculateTotalPersonnel()">
+      </div>
+      <div class="pt-4 border-t-2 border-blue-200"><label for="total-personnel" class="block text-base font-bold text-blue-900 mb-2">Toplam Personel Sayısı</label> <input type="number" id="total-personnel" readonly class="w-full px-4 py-4 bg-blue-50 border-2 border-blue-300 rounded-2xl font-bold text-xl text-blue-900 text-center" value="0">
+      </div>
+     </div>
+    </div><!-- Öğrenci Sayısı Bilgileri -->
+    <div class="bg-white rounded-3xl shadow-sm border border-gray-200 p-6 mt-4">
+     <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">OKUL/KURUM ÖĞRENCİ SAYISI BİLGİLERİ</h2>
+     <div class="space-y-4">
+      <div><label for="normal-student-count" class="block text-sm font-medium text-gray-700 mb-2">Normal *</label> <input type="number" id="normal-student-count" min="0" value="0" class="modern-input w-full px-4 py-3 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" oninput="calculateTotalStudents()">
+      </div>
+      <div><label for="disabled-student-count" class="block text-sm font-medium text-gray-700 mb-2">Engelli *</label> <input type="number" id="disabled-student-count" min="0" value="0" class="modern-input w-full px-4 py-3 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" oninput="calculateTotalStudents()">
+      </div>
+      <div><label for="inclusion-student-count" class="block text-sm font-medium text-gray-700 mb-2">Kaynaştırma *</label> <input type="number" id="inclusion-student-count" min="0" value="0" class="modern-input w-full px-4 py-3 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" oninput="calculateTotalStudents()">
+      </div>
+      <div><label for="chronic-student-count" class="block text-sm font-medium text-gray-700 mb-2">Süreğen Kronik Hasta *</label> <input type="number" id="chronic-student-count" min="0" value="0" class="modern-input w-full px-4 py-3 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" oninput="calculateTotalStudents()">
+      </div>
+      <div class="pt-4 border-t-2 border-green-200"><label for="total-students" class="block text-base font-bold text-green-900 mb-2">Toplam Öğrenci Sayıları</label> <input type="number" id="total-students" readonly class="w-full px-4 py-4 bg-green-50 border-2 border-green-300 rounded-2xl font-bold text-xl text-green-900 text-center" value="0">
+      </div>
+     </div>
+     <div class="flex gap-3 mt-6"><button id="back-to-home" class="modern-btn flex-1 py-3.5 bg-white border border-gray-200 text-gray-700 font-medium rounded-2xl hover:bg-gray-50 transition"> ← Geri </button> <button id="continue-to-audit" class="modern-btn flex-1 py-3.5 bg-blue-600 text-white font-medium rounded-2xl hover:bg-blue-700 transition"> Denetime Devam Et → </button>
+     </div>
+    </div>
+   </div>
+  </div><!-- Denetim Sayfası -->
+  <div id="audit-page" class="hidden h-full overflow-auto">
+   <div class="max-w-4xl mx-auto p-4 pb-20"><!-- Üst Bilgi -->
+    <div class="bg-white rounded-3xl shadow-sm border-2 border-blue-300 p-5 mb-4 sticky top-4 z-10">
+     <div class="flex items-center justify-between mb-2">
+      <h2 id="category-title" class="text-lg font-medium text-gray-900"></h2>
+      <div id="progress-display" class="text-sm font-medium text-gray-500"></div>
+     </div>
+     <p id="school-info-display" class="text-sm text-gray-500 mb-3"></p><!-- Toplam istatistikler -->
+     <div id="total-stats" class="grid grid-cols-3 gap-2 mb-3"></div>
+     <div class="w-full bg-gray-100 rounded-full h-1.5">
+      <div id="progress-bar" class="bg-blue-600 h-1.5 rounded-full transition-all" style="width: 0%"></div>
+     </div>
+    </div><!-- Sorular -->
+    <div id="questions-container" class="space-y-4 mb-4"></div><!-- Navigasyon -->
+    <div class="flex gap-3"><button id="prev-category" class="modern-btn flex-1 py-3.5 bg-white border border-gray-200 text-gray-700 font-medium rounded-2xl hover:bg-gray-50 transition"> ← Önceki </button> <button id="next-category" class="modern-btn flex-1 py-3.5 bg-blue-600 text-white font-medium rounded-2xl hover:bg-blue-700 transition"> Sonraki → </button>
+    </div>
+   </div>
+  </div><!-- Özet Sayfası -->
+  <div id="summary-page" class="hidden h-full overflow-auto">
+   <div class="max-w-4xl mx-auto p-4 pb-20">
+    <div class="bg-white rounded-3xl shadow-sm border border-gray-200 p-6 mb-4">
+     <h2 class="text-2xl font-bold text-blue-900 mb-2 text-center tracking-tight">Denetim Özeti</h2>
+     <p class="text-center text-red-600 font-semibold">Denetim tamamlandı! Sonuçları inceleyin.</p>
+    </div>
+    <div id="summary-content" class="space-y-4 mb-4"></div><!-- Diğer DÖF Girişi Bölümü -->
+    <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-3xl shadow-sm border border-purple-200 p-6 mb-4">
+     <h3 class="text-lg font-bold text-purple-900 mb-3">📝 Diğer DÖF (İsteğe Bağlı)</h3>
+     <p class="text-sm text-purple-700 mb-4">Sorular içerisinde yer almayan uygunsuzlukları buradan ekleyebilirsiniz.</p>
+     <div id="other-dof-list" class="space-y-3 mb-4"></div>
+     <div class="space-y-3"><input type="text" id="other-dof-text" class="w-full px-4 py-3 border border-purple-300 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none" placeholder="DÖF metnini girin..."> <button id="add-other-dof" class="w-full py-3 bg-purple-600 text-white font-medium rounded-2xl hover:bg-purple-700 transition"> ➕ Diğer DÖF Ekle </button>
+     </div>
+    </div>
+    <div id="detail-actions" class="space-y-3"><button id="back-to-audit" class="modern-btn w-full py-3.5 bg-white border border-gray-200 text-gray-700 font-medium rounded-2xl hover:bg-gray-50 transition"> ← Denetime Geri Dön </button> <button id="save-audit" class="modern-btn w-full py-3.5 bg-green-600 text-white font-medium rounded-2xl hover:bg-green-700 transition"> 💾 Denetimi Kaydet </button> <button id="download-pdf" class="modern-btn w-full py-3.5 bg-gray-900 text-white font-medium rounded-2xl hover:bg-gray-800 transition"> 📄 PDF İndir </button>
+    </div>
+   </div>
+  </div><!-- Fotoğraf Modal -->
+  <div id="photo-modal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+   <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl">
+    <h3 class="text-xl font-medium text-gray-900 mb-6">Fotoğraf Ekle</h3>
+    <div class="space-y-3 mb-6"><label for="camera-input" class="modern-btn block w-full py-3.5 bg-gray-900 text-white font-medium rounded-2xl text-center cursor-pointer hover:bg-gray-800 transition"> 📷 Kamera ile Çek </label> <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden"> <label for="gallery-input" class="modern-btn block w-full py-3.5 bg-white border border-gray-200 text-gray-700 font-medium rounded-2xl text-center cursor-pointer hover:bg-gray-50 transition"> 🖼️ Galeriden Seç </label> <input type="file" id="gallery-input" accept="image/*" class="hidden">
+    </div>
+    <div id="photo-preview-container" class="hidden mb-6"><img id="photo-preview" class="w-full h-48 object-cover rounded-2xl" alt="Preview">
+    </div>
+    <div class="flex gap-3"><button id="cancel-photo" class="modern-btn flex-1 py-3.5 bg-white border border-gray-200 text-gray-700 font-medium rounded-2xl hover:bg-gray-50 transition"> İptal </button> <button id="save-photo" class="modern-btn flex-1 py-3.5 bg-green-600 text-white font-medium rounded-2xl hover:bg-green-700 transition"> Kaydet </button>
+    </div>
+   </div>
+  </div><!-- Detay Modal -->
+  <div id="detail-modal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4 overflow-y-auto">
+   <div class="bg-white rounded-3xl max-w-2xl w-full my-8 shadow-2xl">
+    <div class="p-6 border-b border-gray-100 sticky top-0 bg-white rounded-t-3xl z-10">
+     <div class="flex items-center justify-between">
+      <h3 class="text-xl font-medium text-gray-900">Denetim Detayları</h3><button onclick="closeDetailModal()" class="text-gray-400 hover:text-gray-600 text-2xl font-light">✕</button>
+     </div>
+    </div>
+    <div id="detail-content" class="p-6 space-y-4 max-h-96 overflow-y-auto"></div>
+    <div id="detail-actions-modal" class="p-6 border-t border-gray-100 space-y-3"></div>
+   </div>
+  </div>
+  <script>
+    // Denetim Soruları
+const auditQuestions = {
+  A: {
+    title: "İŞ SAĞLIĞI VE GÜVENLİĞİ HİZMETLERİ YÖNETİMİ",
+    questions: [
+      { code: "A1", text: "İşveren Vekili Görevlendirmesi Yapılmış mı? İşveren Onaylamış mı? Tebliğ Edilmiş mi?", dof: "İşveren vekili görevlendirmesi yapılmalı, işveren tarafından onaylanmalı ve ilgili kişiye tebliğ edilmelidir." },
+      { code: "A2", text: "İş Güvenliği Uzmanı Görevlendirmesi Yapılmış mı? (6 Ayda Bir)", dof: "İş güvenliği uzmanı görevlendirmesi 6 aylık periyotlarla güncel tutulmalıdır." },
+      { code: "A3", text: "İşyeri Hekimi Görevlendirmesi Yapılmış mı?", dof: "İşyeri hekimi görevlendirmesi mevzuata uygun şekilde tamamlanmalıdır." },
+      { code: "A4", text: "Çalışan Temsilcisi Atanmış mı? Seçilmiş mi? Tebliğ Edilmiş mi?", dof: "Çalışan temsilcisi seçimle veya atama yoluyla belirlenmeli ve görev tebliği yapılmalıdır." },
+      { code: "A5", text: "İş Sağlığı ve Güvenliği Dokümantasyonu Yapılıyor mu?", dof: "İSG mevzuatının gerektirdiği tüm dokümantasyon süreci düzenli olarak yürütülmelidir." },
+      { code: "A6", text: "Kurum Tespit ve Öneri Defteri Var mı? Kullanılıyor mu?", dof: "Kurum Tespit ve Öneri Defteri temin edilmeli ve onaylı şekilde aktif olarak kullanılmalıdır." },
+      { code: "A7", text: "İş Sağlığı ve Güvenliği Kurulu Oluşturulmuş mu? (Çalışan Sayısı 50’nin üstü)", dof: "Çalışan sayısı 50’nin üzerinde ise İş Sağlığı ve Güvenliği Kurulu resmi olarak oluşturulmalıdır." },
+      { code: "A8", text: "İş Sağlığı ve Güvenliği Kurulu Toplantıları Düzenli Olarak Yapılıyor mu? (Az Tehlikeli: 3 Ayda Bir)", dof: "İSG Kurulu toplantıları az tehlikeli sınıfa uygun olarak 3 ayda bir düzenli gerçekleştirilmelidir." },
+      { code: "A9", text: "İş Sağlığı ve Güvenliği Ekibi Oluşturulmuş mu? (Çalışan Sayısı 50’nin altı)", dof: "Çalışan sayısı 50’nin altında olan birimlerde koordinasyonu sağlayacak İSG Ekibi kurulmalıdır." },
+      { code: "A10", text: "İş Sağlığı ve Güvenliği İç Yönergesi Hazırlanmış mı? İşveren Onaylamış mı?", dof: "Kuruma özel İSG İç Yönergesi hazırlanarak işveren onayına sunulmalıdır." },
+      { code: "A11", text: "Yıllık İSG Çalışma Planı Hazırlanmış mı? İSG Kurulu/Ekibi Onaylamış mı?", dof: "Yıllık İSG Çalışma Planı hazırlanmalı ve yetkili kurul/ekip tarafından onaylanmalıdır." },
+      { code: "A12", text: "Yıllık İSG Değerlendirme Raporu Hazırlanmış mı? İSG Kurulu/Ekibi Onaylamış mı?", dof: "Yıl sonunda İSG Değerlendirme Raporu oluşturularak kurul/ekip onayından geçirilmelidir." },
+      { code: "A13", text: "İş Sağlığı ve Güvenliği Kültürünün Yaygınlaştırılması Çalışmaları Yapılıyor mu?", dof: "Kurum genelinde İSG kültürünün yaygınlaştırılmasına yönelik farkındalık çalışmaları yapılmalıdır." },
+      { code: "A14", text: "İş Sağlığı ve Güvenliği Panosu Oluşturulmuş mu?", dof: "Bilgilendirme ve güncel duyurular için bir İSG Panosu oluşturulmalıdır." },
+      { code: "A15", text: "TS EN ISO 9001 Kalite Yönetim Sistemi (KYS) Çalışması Var mı?", dof: "TS EN ISO 9001 Kalite Yönetim Sistemi standartlarına yönelik çalışmalar başlatılmalıdır." },
+      { code: "A16", text: "TS ISO 45001 İş Sağlığı ve Güvenliği Yönetim Sistemi (İSGYS) Çalışması Var mı?", dof: "TS ISO 45001 İSG Yönetim Sistemi standartları kurum süreçlerine entegre edilmelidir." },
+      { code: "A17", text: "TS ISO 14001 Çevre Yönetim Sistemi (ÇYS) Çalışması Var mı?", dof: "TS ISO 14001 Çevre Yönetim Sistemi standartlarına uygunluk çalışmaları yürütülmelidir." },
+      { code: "A18", text: "MEBBİS İSGB Modülü Bilgileri Güncel mi?", dof: "MEBBİS İSGB Modülü üzerindeki tüm bilgiler sürekli güncel tutulmalıdır." }
+    ]
+  },
+  B: {
+    title: "RİSK YÖNETİMİ",
+    questions: [
+      { code: "B1", text: "Risk Değerlendirme Ekibi Oluşturulmuş mu? Ekip Üyelerine Tebliğ Edilmiş mi?", dof: "Risk Değerlendirme Ekibi oluşturulmalı ve görevleri üyelere tebliğ edilmelidir." },
+      { code: "B2", text: "Risk Değerlendirmesi için Kontrol Listesi (Checklist) Hazırlanmış mı?", dof: "Risk değerlendirme süreci için kuruma özgü kontrol listeleri (checklist) hazırlanmalıdır." },
+      { code: "B3", text: "Risk Değerlendirmesi (Analizi) Yapılmış mı?", dof: "Kurumun tüm alanlarını kapsayan detaylı bir Risk Değerlendirmesi (Analizi) yapılmalıdır." },
+      { code: "B4", text: "Risk Analiz Raporu Hazırlanıp MEBBİS İSGB Modülüne Girilmiş mi?", dof: "Hazırlanan Risk Analiz Raporu MEBBİS İSGB Modülüne eksiksiz girilmelidir." },
+      { code: "B5", text: "İSGB Modülünden Alınan Risk Analiz Raporu Ekip Üyeleri Tarafından İmzalanmış mı?", dof: "MEBBİS’ten alınan çıktı, risk değerlendirme ekibi üyelerine imzalattırılmalıdır." },
+      { code: "B6", text: "Risk Analiz Raporu İşveren Tarafından İmzalanmış ve Onaylanmış mı?", dof: "Risk Analiz Raporu işveren tarafından incelenerek onaylanmalıdır." },
+      { code: "B7", text: "Risk Analiz Raporu Güncelleniyor mu? (Az Tehlikeli: 6 Yıl, Tehlikeli: 4 Yıl)", dof: "Risk analizi tehlike sınıfına göre (Az Tehlikeli: 6, Tehlikeli: 4 yıl) periyodik olarak güncellenmelidir." },
+      { code: "B8", text: "Risk Değerlendirmesi Yapılırken Periyodik Kontrol Raporları Dikkate Alınıyor mu?", dof: "Risk değerlendirmesi yapılırken teknik cihazların periyodik kontrol raporları esas alınmalıdır." },
+      { code: "B9", text: "Riskler Hakkında Çalışanlar Bilgilendirilmiş mi?", dof: "Tespit edilen riskler ve alınması gereken önlemler hakkında tüm çalışanlara bilgi verilmelidir." },
+      { code: "B10", text: "MEBBİS İSGB Modülü Kurum Risk Tabanlı Ödenek Sistemi Kullanılıyor mu?", dof: "İSGB Modülü üzerinden 'Kurum Risk Tabanlı Ödenek Sistemi' etkin şekilde kullanılmalıdır." },
+      { code: "B11", text: "MEBBİS İSGB Modülü “Kurum Risk Değerlendirme İşlemleri” Bölümü Güncel mi?", dof: "İSGB Modülü 'Kurum Risk Değerlendirme İşlemleri' sekmesi sürekli güncel tutulmalıdır." }
+    ]
+  },
+  C: {
+    title: "ACİL DURUM YÖNETİMİ",
+    questions: [
+      { code: "C1", text: "Acil Durum Ekipleri Oluşturulmuş mu? Ekip Üyelerine Tebliğ Edilmiş mi?", dof: "Acil Durum Ekipleri kurulmalı ve ekip görevleri personele tebliğ edilmelidir." },
+      { code: "C2", text: "Acil Durumlar, Önleyici Sınırlayıcı Tedbirler, Müdahale ve Tahliye Yöntemleri Belirlenmiş mi?", dof: "Acil durum senaryoları, müdahale ve tahliye yöntemleri önceden belirlenmelidir." },
+      { code: "C3", text: "Acil Durum Planı İşveren Tarafından İmzalanmış ve Onaylanmış mı?", dof: "Acil Durum Planı işveren tarafından onaylanarak yürürlüğe konulmalıdır." },
+      { code: "C4", text: "Acil Durum Kat Planları, Acil Çıkış Yolları ve Yönlendirme İşaretleri Her Katta Var mı?", dof: "Her katta acil durum kat planları ve yönlendirme işaretleri standartlara uygun yerleştirilmelidir." },
+      { code: "C5", text: "İkaz/Alarm Cihazı ve Duman Dedektörleri/Sensörleri Çalışır Durumda mı?", dof: "İkaz/alarm sistemleri ile duman dedektörlerinin çalışırlığı periyodik test edilmelidir." },
+      { code: "C6", text: "Acil Çıkış Kapıları Var mı?", dof: "Mevzuata uygun sayıda ve konumda acil çıkış kapıları tesis edilmelidir." },
+      { code: "C7", text: "Acil Çıkış Kapıları Standartlara Uygun mu?", dof: "Acil çıkış kapıları panik barlı, duman sızdırmaz ve yanmaya dayanıklı özellikte olmalıdır." },
+      { code: "C8", text: "Okul/Kurum Kapıları Dışarı Yönde Açılıyor mu?", dof: "Tüm kaçış ve ana çıkış kapıları dışarıya (kaçış yönüne) açılacak şekilde düzenlenmelidir." },
+      { code: "C9", text: "Acil Çıkış Kapıları ve Yolları Kullanımı Engelleyecek Şekilde Kapatılmış mı?", dof: "Acil çıkış kapıları ve kaçış yolları her an açık ve engelsiz bulundurulmalıdır." },
+      { code: "C10", text: "Acil Durum Toplanma Bölgeleri Belirlenmiş mi?", dof: "Kurum dışında güvenli bir 'Acil Durum Toplanma Bölgesi' belirlenmeli ve işaretlenmelidir." },
+      { code: "C11", text: "Acil Durum Tatbikatları Yapılıyor mu?", dof: "Deprem, yangın ve tahliye gibi konularda düzenli olarak acil durum tatbikatları yapılmalıdır." },
+      { code: "C12", text: "Acil Durum Planı Güncelleniyor mu?", dof: "Acil Durum Planı, tehlike sınıfına uygun periyotlarda veya değişiklik durumunda revize edilmelidir." },
+      { code: "C13", text: "Acil Durum Telefonları Uygun Yerlere Asılmış mı?", dof: "Acil durum telefon numaraları listesi herkesin görebileceği noktalara asılmalıdır." },
+      { code: "C14", text: "MEBBİS İSGB Modülü “Kurum Acil Durum İşlemleri” Bölümü Güncel mi?", dof: "MEBBİS İSGB Modülü 'Kurum Acil Durum İşlemleri' bölümü güncel verilerle doldurulmalıdır." }
+    ]
+  },
+  D: {
+    title: "İSG EĞİTİM, BİLGİLENDİRME, KAYIT VE BİLDİRİM YÖNETİMİ",
+    questions: [
+      { code: "D1", text: "Çalışanların Temel İSG Eğitimleri Yapılmış mı?", dof: "Çalışanların zorunlu temel İSG eğitimleri yasal süre ve saatlere uygun olarak tamamlanmalıdır." },
+      { code: "D2", text: "İş Sağlığı ve Güvenliği Kurulu Üyeleri Eğitimi ve Bilgilendirmesi Yapılmış mı?", dof: "İSG Kurulu üyelerine özel görev ve sorumluluk eğitimleri verilmelidir." },
+      { code: "D3", text: "Risk Değerlendirme Ekibi Eğitimi ve Bilgilendirmesi Yapılmış mı?", dof: "Risk Değerlendirme Ekibine analiz yöntemleri konusunda bilgilendirme yapılmalıdır." },
+      { code: "D4", text: "Acil Durum Ekipleri Eğitimi ve Bilgilendirmesi Yapılmış mı?", dof: "Acil Durum Ekiplerine yangın, kurtarma ve ilkyardım konularında özel eğitim verilmelidir." },
+      { code: "D5", text: "Yangın Eğitimi Yapılmış mı?", dof: "Tüm personele ve öğrencilere temel yangın güvenliği eğitimi sağlanmalıdır." },
+      { code: "D6", text: "Kişisel Koruyucu Donanım (KKD) ve Bakım Eğitimleri Yapılmış mı?", dof: "KKD kullanması gereken personele donanımların kullanımı ve bakımı eğitimi verilmelidir." },
+      { code: "D7", text: "Hijyen ve Sanitasyon Eğitimleri Yapılmış mı?", dof: "İlgili personelin hijyen ve sanitasyon eğitimlerini alması sağlanmalıdır." },
+      { code: "D8", text: "Öğrenci/Çırak İSG Eğitimleri Yapılmış mı?", dof: "Öğrenci ve çıraklar için seviyelerine uygun İSG farkındalık eğitimleri düzenlenmelidir." },
+      { code: "D9", text: "Özel Politika Gerektiren Personele Özel İSG Eğitimleri Yapılmış mı?", dof: "Engelli, yaşlı veya gebe gibi özel politika gerektiren personele özel bilgilendirme yapılmalıdır." },
+      { code: "D10", text: "Kazan Dairesinden Sorumlu Personel Ateşleyici Belgesi Eğitimleri Yapılmış mı?", dof: "Kazan dairesi görevlilerinin 'Ateşleyici Belgesi' ve gerekli teknik eğitimleri tamamlanmalıdır." },
+      { code: "D11", text: "İşçi Olarak Çalışanlara İSG Talimat ve Tutanak Formu Tebliğ Edilmiş mi?", dof: "İşçi statüsündeki personele İSG talimatları yazılı olarak tebliğ edilmelidir." },
+      { code: "D12", text: "Çalışanların Görev Talimatları Tebliğ Edilmiş mi?", dof: "Her çalışana kendi görev alanına özgü görev ve İSG talimatları verilmelidir." },
+      { code: "D13", text: "İş Kazası Kayıtları Tutuluyor mu? İş Kazası Bildirimleri Yapılıyor mu?", dof: "Meydana gelen iş kazaları kayıt altına alınmalı ve yasal süresi (3 iş günü) içinde bildirilmelidir." },
+      { code: "D14", text: "Meslek Hastalığı Kayıtları Tutuluyor mu?", dof: "Meslek hastalığı şüphesi veya tanısı durumunda gerekli kayıt ve bildirim süreçleri izlenmelidir." },
+      { code: "D15", text: "Ramak Kala Olay Kayıtları Tutuluyor mu?", dof: "Ramak kala olaylar için bildirim kutusu oluşturulmalı ve bu olaylar analiz edilerek kayıt altına alınmalıdır." }
+    ]
+  },
+  E: {
+    title: "YANGIN SİSTEMİ VE YANGINLA MÜCADELE YÖNETİMİ",
+    questions: [
+      { code: "E1", text: "Yangın Önleme, Söndürme İç Düzenleme ve Talimatı Var mı?", dof: "Yangın önleme ve söndürmeye yönelik kurum içi uygulama talimatları hazırlanmalıdır." },
+      { code: "E2", text: "Yangın Vukuunda Hareket Tarzı Tablosu Görülebilir Yerlere Asılmış mı?", dof: "Yangın anında izlenecek hareket tarzını gösteren tablolar görünür yerlere asılmalıdır." },
+      { code: "E3", text: "Yangın Talimatları Tablosu Görülebilir Yerde Bulunuyor mu?", dof: "Her katta ve riskli alanda yangın söndürme talimatları bulundurulmalıdır." },
+      { code: "E4", text: "Yangın Uyarı Sistemi (Kır-Bas) Butonları Çalışıyor mu?", dof: "Yangın uyarı (kır-bas) butonlarının yılda bir kez teknik kontrolü yapılmalıdır." },
+      { code: "E5", text: "Yangın Algılama Sistemi Var mı? Çalışıyor mu?", dof: "Yangın algılama sisteminin işlevselliği yıllık periyodik bakımlarla korunmalıdır." },
+      { code: "E6", text: "Yangın Söndürme Cihazlarının Bakımı Yapılıyor mu?", dof: "Yangın tüplerinin yıllık kontrolleri yapılmalı, 4 yılda bir ise dolum/değişim sağlanmalıdır." },
+      { code: "E7", text: "Yangın Söndürme Cihazları Mekâna Göre Seçilmiş mi?", dof: "Söndürme cihazları, kullanılacak alanın riskine (metal, elektrik, yağ vb.) uygun seçilmelidir." },
+      { code: "E8", text: "Yangın Söndürme Cihazları Sayısı Yeterli mi? Yerden 90 cm Yükseklikte mi?", dof: "Yangın söndürme cihazları yeterli sayıda olmalı ve yerden 90 cm yükseklikte sabitlenmelidir." },
+      { code: "E9", text: "Yangın Dolapları ve Söndürme Cihazlarının Önü Açık mı?", dof: "Yangın dolaplarının ve tüplerin önüne erişimi engelleyecek hiçbir malzeme konulmamalıdır." },
+      { code: "E10", text: "Yangın Dolabı Hortumu Standartlara Uygun mu?", dof: "Yangın dolabı hortumları TS standartlarına uygun uzunlukta ve kalitede olmalıdır." },
+      { code: "E11", text: "Yangın Dolabı Hortum Bağlantısı ve Makara Sağlam mı? Su Var mı?", dof: "Yangın dolaplarında su basıncı sürekli kontrol edilmeli, makara sistemleri yağlanmalıdır." },
+      { code: "E12", text: "Yangın Dolabı Kapağı Kolayca Açılıyor mu?", dof: "Yangın dolabı kapakları kilitli tutulmamalı, herkesçe kolayca açılabilir olmalıdır." },
+      { code: "E13", text: "Yangın Tahliye Kapıları Standartlara Uygun mu?", dof: "Tüm tahliye kapılarının yangın yönetmeliği standartlarına uygunluğu denetlenmelidir." },
+      { code: "E14", text: "Yangın Merdiveni Var mı?", dof: "Binada ihtiyaç duyulan noktalara standartlara uygun yangın merdiveni tesis edilmelidir." },
+      { code: "E15", text: "Mevcut Yangın Merdiveni Standartlara Uygun mu?", dof: "Mevcut yangın merdivenlerinin yapısal sağlamlığı kontrol edilmelidir." },
+      { code: "E16", text: "Yangın Merdiveni İşlevsel Olarak Kullanılır Durumda mı?", dof: "Yangın merdivenleri her zaman temiz, aydınlık ve kullanıma hazır tutulmalıdır." },
+      { code: "E17", text: "Yangın Merdiveni İhtiyacı Tespit Edilmiş mi?", dof: "Binanın mevcut durumuna göre yangın merdiveni ihtiyacı raporlanmalıdır." },
+      { code: "E18", text: "Mutfak Davlumbazında Otomatik Söndürme Sistemi Var mı?", dof: "Mutfak davlumbazları için otomatik söndürme sistemi kurulumu değerlendirilmelidir." },
+      { code: "E19", text: "Elektrik Ana Dağıtım Odasında Uygun Yangın Söndürme Cihazı Var mı?", dof: "Elektrik ana dağıtım odalarında elektrik yangınlarına uygun söndürücüler (CO2 vb.) bulundurulmalıdır." }
+    ]
+  },
+  F: {
+    title: "ELEKTRİK TEHLİKESİ YÖNETİMİ",
+    questions: [
+      { code: "F1", text: "Elektrik Ana Panosunun Altında Yalıtkan Paspas Mevcut mu?", dof: "Elektrik panolarının önündeki zemine yalıtkan (izole) paspas yerleştirilmelidir." },
+      { code: "F2", text: "Elektrik Ana Dağıtım Odası Standartlara Uygun mu?", dof: "Elektrik ana dağıtım odası dış müdahalelere kapalı ve standartlara uygun olmalıdır." },
+      { code: "F3", text: "Elektrik Ana Dağıtım Odasında Elektrik Planı ve Kolon Şeması Mevcut mu?", dof: "Ana dağıtım odasında güncel elektrik tesisat planı ve kolon şeması asılı durmalıdır." },
+      { code: "F4", text: "Elektrik Ana Dağıtım Panosunda Kaçak Akım Rölesi Aktif mi? Uyarı Levhası Var mı?", dof: "Tüm panolarda uygun değerde Kaçak Akım Rölesi bulunmalı ve aktif çalışmalıdır." },
+      { code: "F5", text: "Elektrik Ana Dağıtım Panosu Sigorta Numaraları ve Etiketleri Mevcut mu?", dof: "Panolardaki sigortalar besledikleri alanlara göre etiketlenmeli ve isimlendirilmelidir." },
+      { code: "F6", text: "Tali Elektrik Panolarının Bakımı Yapılıyor mu?", dof: "Tali elektrik panolarının kapakları kapalı tutulmalı ve periyodik bakımları yapılmalıdır." },
+      { code: "F7", text: "Tali Elektrik Panolarında Kaçak Akım Rölesi Aktif mi? Uyarı Levhası Var mı?", dof: "Tali panolarda kaçak akım koruması ve uyarı levhaları eksiksiz olmalıdır." },
+      { code: "F8", text: "Tali Elektrik Panolarının Sigorta Numaraları ve Etiketleri Mevcut mu?", dof: "Panolardaki sigorta isimlendirmeleri kullanıcıların anlayacağı şekilde güncellenmelidir." },
+      { code: "F9", text: "Islak/Nemli Alanlarda Açıkta Yalıtılmamış Kablo, Priz veya Anahtar Var mı?", dof: "Islak zeminlerdeki priz ve anahtarlar sızdırmaz (kapaklı) hale getirilmelidir." },
+      { code: "F10", text: "Elektrik Panolarının Önü Erişime Engel Olmayacak Şekilde Açık mı?", dof: "Elektrik panolarının önü müdahale mesafesini engelleyecek şekilde kapatılmamalıdır." },
+      { code: "F11", text: "Sonradan Eklenen Tesisatlar İçin Onay Alınmış mı? Antigron Kablo Kullanılmış mı?", dof: "Ek tesisat işlerinde mutlaka onaylı projeye sadık kalınmalı ve uygun kablo (antigron) kullanılmalıdır." },
+      { code: "F12", text: "Çatı Elektrik Tesisatı Mevcut mu?", dof: "Çatı arası elektrik tesisatı tehlike oluşturmayacak şekilde izole edilmelidir." },
+      { code: "F13", text: "Elektrik Tesisatı, 'Elektrik İç Tesisat Yönetmeliği'ne Uygun mu?", dof: "Tüm elektrik tesisatı 'Elektrik İç Tesisat Yönetmeliği' şartlarına göre revize edilmelidir." }
+    ]
+  },
+  G: {
+    title: "KAZAN DAİRESİ VE KALORİFER YÖNETİMİ",
+    questions: [
+      { code: "G1", text: "Kazan Dairesi İSG Talimatları Görünür Yere Asılmış mı?", dof: "Kazan dairesine özel İSG talimatları giriş kapısına asılmalıdır." },
+      { code: "G2", text: "Kazan Dairesi İşletme ve Bakım Talimatları Görünür Yere Asılmış mı?", dof: "Kazanın işletme ve bakım talimatları teknik personelin göreceği yere yerleştirilmelidir." },
+      { code: "G3", text: "Kazan Dairesinde Ateşleyici Belgesi Olan Personel Var mı? Belge Asılmış mı?", dof: "Kazan dairesinde sadece yetki belgeli (ateşleyici) personel görevlendirilmelidir." },
+      { code: "G4", text: "Kazan Dairesi Görevlisinin (Kaloriferci) Görev Tanımı Tebliğ Edilmiş mi?", dof: "Kaloriferci/görevli personelin görev tanımı yazılı olarak yapılmalı ve kendisine iletilmelidir." },
+      { code: "G5", text: "Kazan Dairesi Görevlisine KKD Tutanakla Teslim Edilmiş mi ve Kullanılıyor mu?", dof: "Görevli personelin çelik burunlu ayakkabı, eldiven gibi KKD'leri kullanması denetlenmelidir." },
+      { code: "G6", text: "Kazan Dairesinin Temizlik, Düzen ve Güvenliği Sağlanmış mı?", dof: "Kazan dairesinde genel temizlik ve düzen sağlanmalı, zemin kayganlığı önlenmelidir." },
+      { code: "G7", text: "Kazan Dairesinin Temiz Hava Girişi ve Havalandırması Mevzuata Uygun mu?", dof: "Kazan dairesinin havalandırma menfezleri asla kapatılmamalı, mevzuata uygun olmalıdır." },
+      { code: "G8", text: "Kazan Dairesinde Acil Çıkış ve Tehlike Uyarı Levhaları Var mı?", dof: "Alan içerisinde acil çıkış ve yönlendirme levhaları eksiksiz bulundurulmalıdır." },
+      { code: "G9", text: "Kazan Dairesi Kapıları Dışarı Doğru Açılıyor mu?", dof: "Kazan dairesi çıkış kapıları dışa açılır ve kolayca tahliye sağlar durumda olmalıdır." },
+      { code: "G10", text: "Kazan Dairesinde En Az 1 Adet 6 kg’lık KKT Yangın Söndürme Cihazı Var mı?", dof: "Kazan dairesinde en az 1 adet 6 kg'lık KKT yangın söndürme cihazı bulundurulmalıdır." },
+      { code: "G11", text: "Kapasite 350 kW Üstündeyse Yangın Dolabı ve En Az 2 Çıkış Var mı?", dof: "Yüksek kapasiteli (350 kW+) kazanlarda yangın dolabı ve çift çıkış zorunluluğu sağlanmalıdır." },
+      { code: "G12", text: "Kazan ile Yanıcı Maddeler Arasında Bölme Duvar Var mı?", dof: "Kazan ile yanıcı malzeme depoları arasında yangına dayanıklı bölme duvar olmalıdır." },
+      { code: "G13", text: "Elektrik Panosu Dışarıda mı? Acil Stop Butonu Çalışıyor mu?", dof: "Elektrik panosu oda dışında olmalı, oda içinde ise acil durdurma (stop) butonu çalışmalıdır." },
+      { code: "G14", text: "Boru Hatları, Pompa ve Vanalar Üzerinde Tanımlama Etiketleri Var mı?", dof: "Tesisat üzerindeki vana ve borular sıcaklık/akış yönü gibi bilgilerle tanımlanmalıdır." },
+      { code: "G15", text: "Kazan Dairesinde Duman Dedektörü Var mı?", dof: "Kazan dairesinde gaz sızıntısına karşı duman/gaz dedektörü bulundurulmalıdır." },
+      { code: "G16", text: "Kazan Dairesinde Gaz Kesme Ana Vanası Mevcut mu?", dof: "Gaz kesme ana vanası (deprem/yangın vanası) erişilebilir ve çalışır olmalıdır." },
+      { code: "G17", text: "Kazan Dairesinin Depo Olarak Kullanılması Engellenmiş mi?", dof: "Kazan dairesi asla depo veya malzeme muhafaza alanı olarak kullanılmamalıdır." }
+    ]
+  },
+  H: {
+    title: "ORTAM ÖLÇÜMLERİ, PERİYODİK KONTROLLER VE BAKIMLAR",
+    questions: [
+      { code: "H1", text: "Termal Konfor, Gürültü, Toz ve Aydınlatma Ortam Ölçümleri Yapılmış mı?", dof: "Gerekli alanlarda aydınlatma, gürültü ve termal konfor ölçümleri akredite kurumlara yaptırılmalıdır." },
+      { code: "H2", text: "Elektrik Tesisatının Yıllık Periyodik Kontrolleri Yapılmış mı?", dof: "Elektrik iç tesisat kontrolü her yıl yetkili mühendislerce gerçekleştirilmelidir." },
+      { code: "H3", text: "Topraklama Tesisatının Yıllık Periyodik Kontrolleri Yapılmış mı?", dof: "Topraklama ölçümleri yıllık periyotlarla yapılmalı ve raporlanmalıdır." },
+      { code: "H4", text: "Paratoner Tesisatının Yıllık Periyodik Kontrolleri Yapılmış mı?", dof: "Paratoner (yıldırımdan korunma) sisteminin yıllık bakımı ve ölçümü tamamlanmalıdır." },
+      { code: "H5", text: "Yangın Sistem ve Ekipmanlarının Yıllık Kontrolü Yapılmış mı?", dof: "Yangın tesisatının (dolaplar, pompalar, hidrantlar) yıllık teknik kontrolü yapılmalıdır." },
+      { code: "H6", text: "Basınçlı Kaplar ve Kalorifer Kazanının Yıllık Periyodik Kontrolleri Yapılmış mı?", dof: "Kalorifer kazanı ve basınçlı kapların yıllık periyodik muayeneleri yaptırılmalıdır." },
+      { code: "H7", text: "Varsa Asansörlerin Yıllık Periyodik Kontrolleri Yapılmış mı?", dof: "Asansörlerin aylık bakımları ve yıllık periyodik kontrolleri (Mavi/Yeşil etiket) sağlanmalıdır." },
+      { code: "H8", text: "İş Ekipmanlarının Envanteri Tutuluyor mu?", dof: "Tüm iş ekipmanlarının listesi (envanteri) ve bakım geçmişleri tutulmalıdır." },
+      { code: "H9", text: "Varsa Jeneratörün Bakım ve Kontrolleri Düzenli Yapılıyor mu?", dof: "Jeneratörlerin yük testleri ve periyodik bakımları aksatılmadan yapılmalıdır." },
+      { code: "H10", text: "Tezgâh ve Makinelerin Yıllık Bakımları Yapılıp Kartlara İşlenmiş mi?", dof: "Atölye ve laboratuvarlardaki makinelerin bakım kartları oluşturulmalı ve işlenmelidir." },
+      { code: "H11", text: "Klimaların Bakımları Periyodik Olarak Yapılıyor mu?", dof: "Klimaların filtre temizliği ve genel bakımları sağlık şartlarına uygun yapılmalıdır." },
+      { code: "H12", text: "Su Deposu Temizliği ve Periyodik Kontrolü Yapılmış mı?", dof: "Su depoları yılda en az bir kez temizlenmeli ve dezenfekte edilmelidir." },
+      { code: "H13", text: "İçme Suyu Analizleri Yapılmış mı?", dof: "Kullanım sularından numune alınarak periyodik su analizleri yaptırılmalıdır." },
+      { code: "H14", text: "Yıllık Baca Temizliği ve Emisyon Ölçümleri Yaptırılmış mı?", dof: "Doğal gazlı sistemlerde baca temizliği ve emisyon ölçümleri yetkili servislere yaptırılmalıdır." }
+    ]
+  },
+  I: {
+    title: "SAĞLIK GÖZETİMİ, GIDA GÜVENLİĞİ VE İLKYARDIM",
+    questions: [
+      { code: "I1", text: "Çalışanların İşe Giriş Muayeneleri Yapılmış mı?", dof: "Yeni işe giren her personelin işe giriş sağlık raporu dosyalanmalıdır." },
+      { code: "I2", text: "Periyodik Sağlık Muayeneleri Düzenli Yapılıyor mu?", dof: "Mevcut çalışanların periyodik sağlık muayeneleri zamanında yenilenmelidir." },
+      { code: "I3", text: "Gıda İşletmesi (Kantin/Yemekhane) Denetimi Her Ay Yapılıyor mu?", dof: "Kantin ve yemekhaneler kurum denetim komisyonunca her ay düzenli denetlenmelidir." },
+      { code: "I4", text: "Okul Sağlığı Programı (Muayene, Fiziksel Aktivite vb) Uygulanıyor mu?", dof: "Okul Sağlığı kapsamındaki öğrenci muayeneleri ve fiziksel aktiviteler takip edilmelidir." },
+      { code: "I5", text: "Kantin Risk Değerlendirmesi Yapılmış mı?", dof: "Kantin/Yemekhane işletmesine özel risk değerlendirmesi yaptırılmalıdır." },
+      { code: "I6", text: "Kantin Fiziksel Ortamı Hijyen ve Güvenliğe Uygun mu?", dof: "Gıda işletmelerinin zemin, aydınlatma ve hijyen şartları standartlara getirilmelidir." },
+      { code: "I7", text: "Kantin Çalışanları Görev Elbiselerini ve KKD’lerini Kullanıyor mu?", dof: "Gıda çalışanlarının önlük, bone ve eldiven gibi KKD kullanımları denetlenmelidir." },
+      { code: "I8", text: "Tarım Bakanlığı Onaylı Gıda İşletmesi Özel Hijyen Belgesi Var mı?", dof: "İşletmenin Tarım ve Orman Bakanlığı’ndan gerekli izinleri/belgeleri tamamlanmalıdır." },
+      { code: "I9", text: "Halk Eğitim Onaylı Hijyen Eğitim Belgesi Var mı?", dof: "Mutfak ve kantin personelinin hijyen eğitim belgeleri güncellenmelidir." },
+      { code: "I10", text: "Gıda Maddelerinin Temini ve Depolanması Standartlara Uygun mu?", dof: "Gıda maddeleri soğuk zincir bozulmadan ve uygun depolama şartlarında saklanmalıdır." },
+      { code: "I11", text: "Gıda Sunum ve Tüketim Alanları Uygun mu?", dof: "Yemek yeme ve sunum alanları haşerelere karşı korunaklı ve temiz olmalıdır." },
+      { code: "I12", text: "LPG Kullanılıyorsa Bağlantı Emniyeti Sağlanmış mı? Tüpler Bina Dışında mı?", dof: "LPG tüpleri mutlaka bina dışında, korunaklı ve emniyetli şekilde konumlandırılmalıdır." },
+      { code: "I13", text: "Zararlı Haşerelere Karşı İlaçlama Yapılmış mı?", dof: "Bina genelinde zararlı haşerelere karşı periyodik ilaçlama programı uygulanmalıdır." },
+      { code: "I14", text: "Varsa Revir Ortamı İhtiyaçlara Uygun mu?", dof: "Revir imkânları geliştirilmeli ve tıbbi atık yönetimi sağlanmalıdır." },
+      { code: "I15", text: "Kurumda Görevli Hemşire Var mı?", dof: "Kurumda sağlık personeli (hemşire) istihdamı veya görevlendirmesi planlanmalıdır." },
+      { code: "I16", text: "İlkyardım Dolapları Erişilebilir mi? Tıbbi Malzeme Eksiği Var mı?", dof: "İlkyardım dolapları her an ulaşılabilir olmalı ve içindeki malzemeler tamamlanmalıdır." }
+    ]
+  },
+  J: {
+    title: "ATIK YÖNETİMİ",
+    questions: [
+      { code: "J1", text: "Atıkların Kontrolü ve Ayrıştırılması Yapılıyor mu?", dof: "Atıklar kaynağından (kağıt, plastik, metal vb.) ayrıştırılarak toplanmalıdır." },
+      { code: "J2", text: "Yeterli Sayıda Ağzı Kapaklı ve Pedallı Çöp Kutusu Var mı?", dof: "Çöp kutuları hijyen açısından mutlaka pedallı ve kapaklı modellerden seçilmelidir." },
+      { code: "J3", text: "Kimyasal Atıklar (Pil, Yağ vb.) Ayrı Toplanıyor mu?", dof: "Atık piller ve bitkisel yağlar için özel toplama noktaları oluşturulmalıdır." },
+      { code: "J4", text: "Sıfır Atık Projesi Uygulanıyor mu? EÇBS Sistemine Veri Girişi Yapılmış mı?", dof: "Sıfır Atık projesi kapsamında EÇBS sistemine düzenli veri girişi yapılmalıdır." },
+      { code: "J5", text: "Temel Seviye Sıfır Atık Belgesi Alınmış mı?", dof: "Gerekli şartlar sağlanarak kurum için Temel Seviye Sıfır Atık Belgesi alınmalıdır." }
+    ]
+  },
+  K: {
+    title: "GENEL FİZİKİ ŞARTLAR (Bahçe, Merdiven, Korkuluk, Çatı)",
+    questions: [
+      { code: "K1", text: "Giriş Kapısı Güvenliği Sağlanmış mı? Ziyaretçi Kaydı Tutuluyor mu?", dof: "Girişlerde ziyaretçi kayıt sistemi kurulmalı ve çevre duvarı güvenliği artırılmalıdır." },
+      { code: "K2", text: "Bahçe Yaya ve Araç Girişleri Birbirinden Ayrılmış mı?", dof: "Bahçede araç yolu ve yaya yolu çizgilerle/bariyerlerle net şekilde ayrılmalıdır." },
+      { code: "K3", text: "Bahçe Kapısının Devrilme ve Sıkışmaya Karşı Kontrolü Yapılmış mı?", dof: "Bahçe kapılarının raydan çıkma veya devrilme riskine karşı emniyet stoperleri takılmalıdır." },
+      { code: "K4", text: "Bahçe İçinde Güvenli Park Alanı Mevcut mu?", dof: "Araçlar için belirlenmiş, yaya trafiğini etkilemeyen güvenli park alanları oluşturulmalıdır." },
+      { code: "K5", text: "Bahçe Duvarları ve Korkuluklar Güvenli mi?", dof: "Bahçe duvarları üzerindeki korkulukların kesici/yırttıcı özellikleri giderilmelidir." },
+      { code: "K6", text: "Bahçe Zeminindeki Çukur ve Engeller İçin Önlem Alınmış mı?", dof: "Bahçe zeminindeki tüm çukurlar kapatılmalı, zemin bozuklukları onarılmalıdır." },
+      { code: "K7", text: "Bahçe Duvar Ekleri Kesme ve Yıkılma Riskine Karşı Kontrol Edilmiş mi?", dof: "Yıkılma riski taşıyan duvar veya eklentiler için ivedilikle önlem alınmalıdır." },
+      { code: "K8", text: "Spor Direkleri (Basketbol, Kale vb.) Devrilmeye Karşı Sabitlenmiş mi?", dof: "Basketbol potaları ve kale direkleri devrilmeyecek şekilde yere sabitlenmelidir." },
+      { code: "K9", text: "Bahçe Çıkışları Doğrudan Güvenli Alana Açılıyor mu?", dof: "Bina çıkışlarının doğrudan caddeye değil, güvenli bahçe alanına açılması sağlanmalıdır." },
+      { code: "K10", text: "Şiddetli Rüzgâra Karşı (Çatı, Pano vb.) Önlemler Alınmış mı?", dof: "Çatı levhaları, tabelalar ve klimalar şiddetli rüzgâra karşı sabitlenmelidir." },
+      { code: "K11", text: "Su Kuyusu Varsa Güvenlik Kapağı ve Kilidi Mevcut mu?", dof: "Bahçedeki su kuyuları ve rögarlar kilitli ağır kapaklarla emniyete alınmalıdır." },
+      { code: "K12", text: "Bahçe Zemininde Açık Rögar veya Sivri Materyal Var mı?", dof: "Bahçe zemininde su birikintisi ve buzlanmaya karşı drenaj çalışmaları yapılmalıdır." },
+      { code: "K13", text: "Merdivenlerde Kaydırmaz Bant Uygulaması Yapılmış mı?", dof: "Merdiven basamaklarına aşınmaya dayanıklı kaydırmaz bantlar yapıştırılmalıdır." },
+      { code: "K14", text: "Merdiven Boşlukları (Güvenlik Filesi vb.) İçin Önlem Alınmış mı?", dof: "Merdiven boşluklarına yüksekten düşmeyi önleyici güvenlik fileleri veya korkuluklar monte edilmelidir." },
+      { code: "K15", text: "Engelli Erişimi (Rampa, Asansör vb.) Sağlanmış mı?", dof: "Engelli rampaları ve tuvaletleri standartlara (eğim ve genişlik) uygun hale getirilmelidir." },
+      { code: "K16", text: "Merdiven Basamakları Standart Ölçülere Uygun mu?", dof: "Merdiven basamak yükseklikleri ve genişlikleri tüm kullanıcılar için eşitlenmelidir." },
+      { code: "K17", text: "Merdiven Küpeşte Yüksekliği Standartlara Uygun mu?", dof: "Merdivenlerdeki korkuluklar sağlamlaştırılmalı ve uygun yüksekliğe getirilmelidir." },
+      { code: "K18", text: "Dört Basamaktan Fazla Olan Tüm Merdivenlerde Korkuluk Var mı?", dof: "Basamak sayısı 4’ten fazla olan tüm merdivenlerde tutamak (küpeşte) bulundurulmalıdır." },
+      { code: "K19", text: "Korkuluk Yüksekliği En Az 90 cm mi?", dof: "Korkuluk yüksekliğinin tüm alanlarda en az 90 cm olması sağlanmalıdır." },
+      { code: "K20", text: "Korkuluk Aralıkları Çocukların Düşmesini Engelleyecek Kadar Dar mı?", dof: "Korkuluk dikme aralıkları çocukların başının geçemeyeceği (max 10-12 cm) aralıkta olmalıdır." },
+      { code: "K21", text: "Korkulukların Üzerinde Kaymayı Engelleyecek Tedbir Alınmış mı?", dof: "Merdiven kenarları kaymaya veya takılmaya neden olmayacak şekilde düzenlenmelidir." },
+      { code: "K22", text: "Uygun Olmayan Eski Korkuluklar İçin İyileştirme Yapılmış mı?", dof: "Standart dışı olan tüm korkuluk sistemleri teknik rapor doğrultusunda yenilenmelidir." },
+      { code: "K23", text: "Rampaların Eğimi ve Korkulukları Tekerlekli Sandalyeye Uygun mu?", dof: "Rampaların zeminleri ıslakken kaymayacak malzeme ile kaplanmalıdır." },
+      { code: "K24", text: "Kimyasallar Kilitli ve Işık Almayan Depolarda mı Saklanıyor?", dof: "Temizlik kimyasalları kilitli dolaplarda, orijinal etiketli ambalajlarında saklanmalıdır." },
+      { code: "K25", text: "Sınıf Kapılarında Parmak Sıkışmasını Önleyici Aparat Var mı?", dof: "Kapılarda parmak sıkışmasını önleyici aparatlar (menteşe koruyucu) kullanılmalıdır." },
+      { code: "K26", text: "Sınıf Kapıları Dışarıya Açılıyor mu ve Önleri İşaretlenmiş mi?", dof: "Sınıf kapılarının açılma yönü koridor trafiğini engellemeyecek şekilde işaretlenmelidir." },
+      { code: "K27", text: "Pencerelerin Açılma Mesafesi (Düşmeyi Önleyecek Şekilde) Sınırlandırılmış mı?", dof: "Pencerelere belirli bir açıdan fazla açılmasını önleyen emniyet kilitleri takılmalıdır." },
+      { code: "K28", text: "Cam Kapı ve Bölmelerde Kırılmaya Karşı Güvenlik Filmi Var mı?", dof: "Alçak seviyedeki cam bölmeler, çarpma anında dağılmayan güvenlik filmi ile kaplanmalıdır." },
+      { code: "K29", text: "Islak Zeminlerde Kayma Riskine Karşı Uyarı Levhası Kullanılıyor mu?", dof: "Islak alan girişlerine Kaygan Zemin uyarı levhaları yerleştirilmelidir." },
+      { code: "K30", text: "Zeminlerdeki Kot Farkları Belirgin Hale Getirilmiş mi?", dof: "Zeminlerdeki ufak kot farkları sarı-siyah ikaz bantları ile belirginleştirilmelidir." },
+      { code: "K31", text: "Dolap, Kitaplık vb. Eşyalar Duvara Sabitlenmiş mi? (L-Braket ile)", dof: "Kitaplıklar, dolaplar ve ağır eşyalar devrilmeye karşı duvara sabitlenmelidir." },
+      { code: "K32", text: "Kalorifer Petekleri Keskin Köşelere Karşı Korunmuş mu?", dof: "Keskin köşeli kalorifer peteklerine koruyucu yumuşak kenarlıklar takılmalıdır." },
+      { code: "K33", text: "Fiziki Alanların Genel Temizliği ve Hijyeni Uygun mu?", dof: "Tuvaletler ve ortak alanlar için günlük temizlik takip çizelgeleri uygulanmalıdır." },
+      { code: "K34", text: "Çatı Kapısı Kilitli mi? Erişimi Engellenmiş mi?", dof: "Çatı çıkış kapıları her zaman kilitli ve sadece yetkili erişimine açık tutulmalıdır." },
+      { code: "K35", text: "Çatının Depo Olarak Kullanılması Engellenmiş mi?", dof: "Çatı araları yanıcı malzeme ve atıklardan tamamen arındırılmalıdır." },
+      { code: "K36", text: "Makine ve Araçların Kullanma Talimatları Üzerinde mi?", dof: "Kullanılan her türlü makine için kısa ve öz Kullanım Talimatı asılmalıdır." },
+      { code: "K37", text: "Özel Amaçlı İş Ekipmanlarının Talimatları Mevcut mu?", dof: "Özel ekipmanlar (asansör, jeneratör vb.) için acil müdahale talimatları hazırlanmalıdır." },
+      { code: "K38", text: "Güvenlik Kameraları Tüm Kör Noktaları Görüyor mu?", dof: "Kamera sisteminin kör noktaları belirlenerek güvenlik ağı genişletilmelidir." },
+      { code: "K39", text: "Tüm Odalar ve Bölümler Tanımlayıcı Levhalarla İsimlendirilmiş mi?", dof: "Tüm birimlerin kapı isimlikleri ve yönlendirme tabelaları standart hale getirilmelidir." },
+      { code: "K40", text: "Tuvaletlerin Fiziki Ortamı (Aydınlatma, Havalandırma vb.) Uygun mu?", dof: "Tuvaletlerde koku ve nemi önlemek için havalandırma sistemleri iyileştirilmelidir." },
+      { code: "K41", text: "Tuvaletler Hijyen Kurallarına Uygun mu?", dof: "Tuvalet zeminleri dezenfektanlarla düzenli olarak temizlenmelidir." },
+      { code: "K42", text: "Tuvaletlerde Temizlik Malzemeleri Güvenli Yerlerde mi Tutuluyor?", dof: "Temizlik maddeleri tuvaletlerde açıkta değil, kapalı dolaplarda tutulmalıdır." },
+      { code: "K43", text: "Tuvalet Temizlik Çizelgeleri Günlük Olarak İşleniyor mu?", dof: "Temizlik sonrası ıslak zeminler kurulanmalı ve gerekli ikazlar konulmalıdır." }
+    ]
+  },
+  L: {
+    title: "MESLEKİ VE TEKNİK ANADOLU LİSESİ İSG",
+    questions: [
+      { code: "L1", text: "11. Sınıf Öğrencilerine İME Öncesi İSG Eğitimi Verilmiş mi?", dof: "11. Sınıf öğrencilerine staj öncesi yoğunlaştırılmış İSG eğitimi verilmelidir." },
+      { code: "L2", text: "İşletmelerde Beceri Eğitimi Gören Öğrencilerin İSG Eğitimleri Takip Ediliyor mu?", dof: "İşletmelerdeki öğrencilerin çalışma şartları ve KKD kullanımları periyodik denetlenmelidir." },
+      { code: "L3", text: "İME Öncesi İşe Giriş Muayene Raporları Dosyalanmış mı?", dof: "Stajyer öğrencilerin işe giriş muayene raporları eksiksiz şekilde dosyalanmalıdır." }
+    ]
+  }
+};
+
+  const categoryOrder = [
+  'A', 'B', 'C', 'D', 
+  'E', 'F', 'G', 'H',
+  'I', 'J', 'K', 'L'
+];
+
+    // Uygulama Durumu
+    const appState = {
+      schoolCode: '',
+      schoolName: '',
+      schoolDistrict: '',
+      auditDate: '',
+      schoolAddress: '',
+      schoolScope: '',
+      schoolHazardClass: '',
+      schoolPhone: '',
+      schoolEmail: '',
+      managerCount: 0,
+      teacherCount: 0,
+      officerCount: 0,
+      servantCount: 0,
+      workerCount: 0,
+      typCount: 0,
+      paidTeacherCount: 0,
+      contractCount: 0,
+      masterInstructorCount: 0,
+      disabledCount: 0,
+      exconvictCount: 0,
+      chronicCount: 0,
+      totalPersonnel: 0,
+      normalStudentCount: 0,
+      disabledStudentCount: 0,
+      inclusionStudentCount: 0,
+      chronicStudentCount: 0,
+      totalStudents: 0,
+      currentCategoryIndex: 0,
+      currentPage: 'home',
+      answers: {},
+      photos: {},
+      allAudits: [],
+      currentPhotoQuestion: null,
+      editingAuditId: null,
+      previousDeficiencies: [],
+      otherDeficiencies: []
+    };
+
+    // Yardımcı Fonksiyonlar
+    function generateId() {
+      return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
+    function showToast(message) {
+      const existing = document.querySelector('.toast');
+      if (existing) existing.remove();
+      
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    function getTotalQuestions() {
+      return Object.values(auditQuestions).reduce((sum, cat) => sum + cat.questions.length, 0);
+    }
+
+    function getAnsweredCount() {
+      return Object.values(appState.answers).filter(a => a.value).length;
+    }
+
+    function updateProgress() {
+      const total = getTotalQuestions();
+      const answered = getAnsweredCount();
+      const percentage = Math.round((answered / total) * 100);
+      
+      document.getElementById('progress-bar').style.width = percentage + '%';
+      document.getElementById('progress-display').textContent = `${answered}/${total} Soru`;
+    }
+
+    // LocalStorage İşlemleri
+    function saveAuditsToStorage() {
+      try {
+        localStorage.setItem('isg_audits', JSON.stringify(appState.allAudits));
+      } catch (e) {
+        console.error('LocalStorage kayit hatasi:', e);
+        showToast('Veri kaydetme hatasi!');
+      }
+    }
+
+    function loadAuditsFromStorage() {
+      try {
+        const saved = localStorage.getItem('isg_audits');
+        if (saved) {
+          appState.allAudits = JSON.parse(saved);
+        }
+      } catch (e) {
+        console.error('LocalStorage okuma hatasi:', e);
+      }
+    }
+
+    // Sekme Değiştirme
+    function switchTab(tab) {
+      const existingWarnings = document.querySelectorAll('.unanswered-warning');
+      existingWarnings.forEach(w => w.remove());
+      
+      document.getElementById('tab-new').classList.remove('active');
+      document.getElementById('tab-data').classList.remove('active');
+      document.getElementById('tab-info').classList.remove('active');
+      document.getElementById('content-new').classList.add('hidden');
+      document.getElementById('content-data').classList.add('hidden');
+      document.getElementById('content-info').classList.add('hidden');
+      
+      document.getElementById(`tab-${tab}`).classList.add('active');
+      document.getElementById(`content-${tab}`).classList.remove('hidden');
+
+      if (tab === 'data') {
+        renderStatistics();
+        renderAuditHistory();
+      }
+    }
+
+    // İstatistikleri Göster
+    function renderStatistics() {
+      const container = document.getElementById('statistics-container');
+      
+      if (appState.allAudits.length === 0) {
+        container.innerHTML = '<p class="col-span-full text-center text-gray-500 py-4">Henüz veri bulunmuyor</p>';
+        return;
+      }
+
+      const totalAudits = appState.allAudits.length;
+      let totalDeficiencies = 0;
+      let totalCompliant = 0;
+      let totalNA = 0;
+
+      appState.allAudits.forEach(audit => {
+        Object.values(audit.answers || {}).forEach(answer => {
+          if (answer.value === 'no') totalDeficiencies++;
+          else if (answer.value === 'yes') totalCompliant++;
+          else if (answer.value === 'na') totalNA++;
+        });
+      });
+
+      const stats = [
+        { label: 'Toplam Denetim', value: totalAudits, color: 'blue', icon: '📊' },
+        { label: 'Toplam Uygun', value: totalCompliant, color: 'green', icon: '✓' },
+        { label: 'Toplam Eksiklik', value: totalDeficiencies, color: 'red', icon: '⚠️' },
+        { label: 'Gerekli Değil', value: totalNA, color: 'yellow', icon: '◯' }
+      ];
+
+      container.innerHTML = stats.map(stat => {
+        const colorClasses = {
+          blue: 'bg-blue-50 border-blue-200 text-blue-600',
+          green: 'bg-green-50 border-green-200 text-green-600',
+          red: 'bg-red-50 border-red-200 text-red-600',
+          yellow: 'bg-yellow-50 border-yellow-200 text-yellow-600'
+        };
+
+        return `
+          <div class="${colorClasses[stat.color]} border rounded-2xl p-4 text-center">
+            <div class="text-2xl mb-1">${stat.icon}</div>
+            <div class="text-2xl font-bold">${stat.value}</div>
+            <div class="text-xs mt-1 font-medium">${stat.label}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Önceki Denetimleri Kontrol Et
+    function checkPreviousAudits() {
+      const schoolCode = document.getElementById('school-code').value.trim();
+      const schoolName = document.getElementById('school-name').value.trim();
+      
+      if (!schoolCode || !schoolName) {
+        document.getElementById('previous-audit-warning').classList.add('hidden');
+        appState.previousDeficiencies = [];
+        return;
+      }
+
+      const previousAudits = appState.allAudits.filter(a => {
+        if (appState.editingAuditId && a.id === appState.editingAuditId) {
+          return false;
+        }
+        return a.school_code === schoolCode || a.school_name === schoolName;
+      });
+
+      if (previousAudits.length === 0) {
+        document.getElementById('previous-audit-warning').classList.add('hidden');
+        appState.previousDeficiencies = [];
+        return;
+      }
+
+      const latestAudit = previousAudits.sort((a, b) => 
+        new Date(b.audit_date) - new Date(a.audit_date)
+      )[0];
+
+      const deficiencies = Object.entries(latestAudit.answers || {})
+        .filter(([code, answer]) => answer.value === 'no')
+        .map(([code, answer]) => ({
+          code,
+          dof: answer.dof,
+          note: answer.note,
+          photo: (latestAudit.photos || {})[code],
+          resolved: false,
+          fromAuditDate: latestAudit.audit_date
+        }));
+
+      if (deficiencies.length > 0) {
+        appState.previousDeficiencies = deficiencies;
+        document.getElementById('previous-audit-warning').classList.remove('hidden');
+        
+        const listContainer = document.getElementById('previous-deficiencies-list');
+        listContainer.innerHTML = `
+          <div class="bg-blue-50 p-2 rounded-lg border border-blue-300 text-xs mb-2">
+            <span class="font-bold text-blue-800">📅 Son Denetim Tarihi: ${latestAudit.audit_date}</span>
+          </div>
+          ${deficiencies.map(d => `
+            <div class="bg-white p-2 rounded-lg border border-orange-300 text-sm">
+              <span class="font-bold text-orange-800">${d.code}:</span>
+              <span class="text-orange-700">${d.dof}</span>
+            </div>
+          `).join('')}
+        `;
+      } else {
+        document.getElementById('previous-audit-warning').classList.add('hidden');
+        appState.previousDeficiencies = [];
+      }
+    }
+
+    // Denetim Geçmişi
+    function renderAuditHistory() {
+      const container = document.getElementById('audit-history');
+      
+      if (appState.allAudits.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12">
+            <div class="text-6xl mb-4">📋</div>
+            <p class="text-gray-500 font-medium">Henüz kayıtlı denetim bulunmuyor</p>
+            <p class="text-gray-400 text-sm">Yeni bir denetim başlatarak kaydetmeye başlayın</p>
+          </div>
+        `;
+        return;
+      }
+
+      const sortedAudits = [...appState.allAudits].sort((a, b) => 
+        new Date(b.audit_date) - new Date(a.audit_date)
+      );
+
+      container.innerHTML = sortedAudits.map(audit => {
+        const questionDefCount = Object.values(audit.answers || {}).filter(a => a.value === 'no').length;
+        const otherDefCount = (audit.other_deficiencies || []).length;
+        const defCount = questionDefCount + otherDefCount;
+        const totalCount = Object.keys(audit.answers || {}).length;
+        
+        return `
+          <div class="bg-white rounded-xl p-4 shadow hover:shadow-md transition border-l-4 ${defCount > 0 ? 'border-red-500' : 'border-green-500'}">
+            <div class="flex items-start justify-between mb-2 cursor-pointer" onclick="viewAuditDetails('${audit.id}')">
+              <div class="flex-1">
+                <h3 class="font-bold text-gray-800">${audit.school_name}</h3>
+                <p class="text-sm text-gray-500">Kod: ${audit.school_code}</p>
+                ${audit.school_district ? `<p class="text-sm text-gray-500">İlçe: ${audit.school_district}</p>` : ''}
+              </div>
+              <div class="text-right">
+                <p class="text-sm font-medium text-gray-600">${audit.audit_date}</p>
+                <p class="text-xs text-gray-400 mt-1">${totalCount} soru</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 mt-3 cursor-pointer" onclick="viewAuditDetails('${audit.id}')">
+              ${defCount > 0 ? 
+                `<span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded">⚠️ ${defCount} Eksiklik</span>` :
+                `<span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">✓ Uygun</span>`
+              }
+              <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">${audit.status === 'completed' ? 'Tamamlandı' : 'Devam Ediyor'}</span>
+            </div>
+            <div class="flex gap-2 mt-3">
+              <button onclick="event.stopPropagation(); editAudit('${audit.id}')" 
+                      class="flex-1 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition">
+                ✏️ Düzenle
+              </button>
+              <button onclick="event.stopPropagation(); downloadAuditPDF('${audit.id}')" 
+                      class="flex-1 py-2 bg-green-500 text-white text-sm font-medium rounded-lg hover:bg-green-600 transition">
+                📄 PDF
+              </button>
+              <button onclick="event.stopPropagation(); deleteAuditFromList('${audit.id}')" 
+                      class="flex-1 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition">
+                🗑️ Sil
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function loadAudit(auditId) {
+      const audit = appState.allAudits.find(a => a.id === auditId);
+      if (!audit) return;
+
+      document.getElementById('school-code').value = audit.school_code;
+      document.getElementById('school-name').value = audit.school_name;
+      document.getElementById('school-district').value = audit.school_district || '';
+      document.getElementById('audit-date').value = audit.audit_date;
+      document.getElementById('school-address').value = audit.school_address || '';
+      document.getElementById('school-scope').value = audit.school_scope || '';
+      document.getElementById('school-hazard-class').value = audit.school_hazard_class || '';
+      document.getElementById('school-phone').value = audit.school_phone || '';
+      document.getElementById('school-email').value = audit.school_email || '';
+
+      document.getElementById('manager-count').value = audit.manager_count || 0;
+      document.getElementById('teacher-count').value = audit.teacher_count || 0;
+      document.getElementById('officer-count').value = audit.officer_count || 0;
+      document.getElementById('servant-count').value = audit.servant_count || 0;
+      document.getElementById('worker-count').value = audit.worker_count || 0;
+      document.getElementById('typ-count').value = audit.typ_count || 0;
+      document.getElementById('paid-teacher-count').value = audit.paid_teacher_count || 0;
+      document.getElementById('contract-count').value = audit.contract_count || 0;
+      document.getElementById('master-instructor-count').value = audit.master_instructor_count || 0;
+      document.getElementById('disabled-count').value = audit.disabled_count || 0;
+      document.getElementById('exconvict-count').value = audit.exconvict_count || 0;
+      document.getElementById('chronic-count').value = audit.chronic_count || 0;
+      calculateTotalPersonnel();
+
+      document.getElementById('normal-student-count').value = audit.normal_student_count || 0;
+      document.getElementById('disabled-student-count').value = audit.disabled_student_count || 0;
+      document.getElementById('inclusion-student-count').value = audit.inclusion_student_count || 0;
+      document.getElementById('chronic-student-count').value = audit.chronic_student_count || 0;
+      calculateTotalStudents();
+
+      appState.schoolCode = audit.school_code;
+      appState.schoolName = audit.school_name;
+      appState.schoolDistrict = audit.school_district || '';
+      appState.auditDate = audit.audit_date;
+      appState.schoolAddress = audit.school_address || '';
+      appState.schoolScope = audit.school_scope || '';
+      appState.schoolHazardClass = audit.school_hazard_class || '';
+      appState.schoolPhone = audit.school_phone || '';
+      appState.schoolEmail = audit.school_email || '';
+      appState.managerCount = audit.manager_count || 0;
+      appState.teacherCount = audit.teacher_count || 0;
+      appState.officerCount = audit.officer_count || 0;
+      appState.servantCount = audit.servant_count || 0;
+      appState.workerCount = audit.worker_count || 0;
+      appState.typCount = audit.typ_count || 0;
+      appState.paidTeacherCount = audit.paid_teacher_count || 0;
+      appState.contractCount = audit.contract_count || 0;
+      appState.masterInstructorCount = audit.master_instructor_count || 0;
+      appState.disabledCount = audit.disabled_count || 0;
+      appState.exconvictCount = audit.exconvict_count || 0;
+      appState.chronicCount = audit.chronic_count || 0;
+      appState.totalPersonnel = audit.total_personnel || 0;
+      appState.normalStudentCount = audit.normal_student_count || 0;
+      appState.disabledStudentCount = audit.disabled_student_count || 0;
+      appState.inclusionStudentCount = audit.inclusion_student_count || 0;
+      appState.chronicStudentCount = audit.chronic_student_count || 0;
+      appState.totalStudents = audit.total_students || 0;
+      appState.answers = audit.answers || {};
+      appState.photos = audit.photos || {};
+      appState.editingAuditId = auditId;
+      appState.previousDeficiencies = audit.previous_deficiencies || [];
+      appState.otherDeficiencies = audit.other_deficiencies || [];
+    }
+
+    function viewAuditDetails(auditId) {
+      const audit = appState.allAudits.find(a => a.id === auditId);
+      if (!audit) return;
+
+      const deficiencies = Object.entries(audit.answers || {})
+        .filter(([code, answer]) => answer.value === 'no')
+        .map(([code, answer]) => ({
+          code,
+          dof: answer.dof,
+          note: answer.note,
+          photo: (audit.photos || {})[code]
+        }));
+
+      const yesCount = Object.values(audit.answers || {}).filter(a => a.value === 'yes').length;
+      const noCount = deficiencies.length;
+      const naCount = Object.values(audit.answers || {}).filter(a => a.value === 'na').length;
+
+      const detailContent = document.getElementById('detail-content');
+      detailContent.innerHTML = `
+        <div class="bg-white rounded-xl p-4 border">
+          <h3 class="text-lg font-bold text-gray-800 mb-3">📋 Denetim Bilgileri</h3>
+          <div class="grid grid-cols-2 gap-3 text-sm">
+            <div><span class="text-gray-500">Okul:</span> <strong>${audit.school_name}</strong></div>
+            <div><span class="text-gray-500">Kod:</span> <strong>${audit.school_code}</strong></div>
+            <div><span class="text-gray-500">İlçe:</span> <strong>${audit.school_district || '-'}</strong></div>
+            <div><span class="text-gray-500">Tarih:</span> <strong>${audit.audit_date}</strong></div>
+            <div class="col-span-2"><span class="text-gray-500">Adres:</span> <strong>${audit.school_address || '-'}</strong></div>
+            <div><span class="text-gray-500">Kapsam:</span> <strong>${audit.school_scope || '-'}</strong></div>
+            <div><span class="text-gray-500">Tehlike Sınıfı:</span> <strong>${audit.school_hazard_class || '-'}</strong></div>
+            <div><span class="text-gray-500">Telefon:</span> <strong>${audit.school_phone || '-'}</strong></div>
+            <div><span class="text-gray-500">E-Posta:</span> <strong>${audit.school_email || '-'}</strong></div>
+            <div><span class="text-gray-500">Toplam Personel:</span> <strong>${audit.total_personnel || 0}</strong></div>
+            <div><span class="text-gray-500">Toplam Öğrenci:</span> <strong>${audit.total_students || 0}</strong></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div class="bg-green-50 border border-green-200 rounded-xl p-3 text-center">
+            <div class="text-xl font-bold text-green-600">${yesCount}</div>
+            <div class="text-xs text-green-700">Evet</div>
+          </div>
+          <div class="bg-red-50 border border-red-200 rounded-xl p-3 text-center">
+            <div class="text-xl font-bold text-red-600">${noCount}</div>
+            <div class="text-xs text-red-700">Hayır</div>
+          </div>
+          <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-center">
+            <div class="text-xl font-bold text-yellow-600">${naCount}</div>
+            <div class="text-xs text-yellow-700">Gerekli Değil</div>
+          </div>
+        </div>
+
+        <div>
+          ${deficiencies.length > 0 || (audit.other_deficiencies || []).length > 0 ? `
+            <div class="bg-white rounded-xl border p-4">
+              <h3 class="text-lg font-bold text-red-600 mb-3">⚠️ Düzeltici Önleyici Faaliyetler (${deficiencies.length + (audit.other_deficiencies || []).length})</h3>
+              <div class="space-y-3">
+                ${deficiencies.map(d => {
+                  const isPrevious = (audit.previous_deficiencies || []).find(pd => pd.code === d.code && !pd.resolved);
+                  return `
+                    <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <div class="flex items-start gap-2 mb-2">
+                        <span class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">${d.code}</span>
+                        ${isPrevious ? '<span class="bg-orange-500 text-white text-xs px-2 py-1 rounded">(Devam Eden)</span>' : ''}
+                      </div>
+                      <p class="text-red-800 font-medium mb-1">${d.dof}</p>
+                      ${d.note ? `<p class="text-red-600 text-sm">Not: ${d.note}</p>` : ''}
+                      ${d.photo ? `<img src="${d.photo}" alt="Deficiency photo" loading="lazy" class="w-full h-32 object-cover rounded-lg mt-2">` : ''}
+                    </div>
+                  `;
+                }).join('')}
+                ${(audit.other_deficiencies || []).length > 0 ? `
+                  <div class="border-t-2 border-purple-300 pt-3 mt-3">
+                    <h4 class="text-sm font-bold text-purple-700 mb-2">📝 Diğer DÖF (${(audit.other_deficiencies || []).length})</h4>
+                    ${(audit.other_deficiencies || []).map((dof, idx) => `
+                      <div class="p-3 bg-purple-50 border border-purple-200 rounded-lg mb-2">
+                        <div class="flex items-start gap-2 mb-2">
+                          <span class="bg-purple-500 text-white text-xs font-bold px-2 py-1 rounded">DİĞER ${idx + 1}</span>
+                        </div>
+                        <p class="text-purple-900 font-medium">${dof}</p>
+                      </div>
+                    `).join('')}
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          ` : `
+            <div class="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
+              <div class="text-4xl mb-2">✅</div>
+              <h3 class="text-lg font-bold text-green-700">Tebrikler!</h3>
+              <p class="text-green-600">Tüm maddeler uygun bulunmuştur.</p>
+            </div>
+          `}
+        </div>
+      `;
+
+      const detailActions = document.getElementById('detail-actions-modal');
+      detailActions.innerHTML = `
+        <button onclick="editAudit('${auditId}')" class="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-semibold rounded-xl hover:shadow-lg transition">
+          ✏️ Denetimi Düzenle
+        </button>
+        <button onclick="downloadAuditPDF('${auditId}')" class="w-full py-3 bg-gradient-to-r from-green-500 to-green-700 text-white font-semibold rounded-xl hover:shadow-lg transition">
+          📄 PDF İndir
+        </button>
+        <button onclick="deleteAudit('${auditId}')" class="w-full py-3 bg-gradient-to-r from-red-500 to-red-700 text-white font-semibold rounded-xl hover:shadow-lg transition">
+          🗑️ Denetimi Sil
+        </button>
+      `;
+
+      document.getElementById('detail-modal').classList.remove('hidden');
+    }
+
+    function closeDetailModal() {
+      document.getElementById('detail-modal').classList.add('hidden');
+    }
+
+    function editAudit(auditId) {
+      closeDetailModal();
+      loadAudit(auditId);
+      switchTab('new');
+    }
+
+    function deleteAuditFromList(auditId) {
+      const deleteBtn = event.target;
+      
+      if (deleteBtn.textContent.includes('🗑️ Sil')) {
+        deleteBtn.textContent = '⚠️ Emin misiniz?';
+        deleteBtn.className = 'flex-1 py-2 bg-orange-500 text-white text-sm font-medium rounded-lg hover:bg-orange-600 transition';
+        
+        setTimeout(() => {
+          deleteBtn.textContent = '🗑️ Sil';
+          deleteBtn.className = 'flex-1 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition';
+        }, 3000);
+        return;
+      }
+      
+      appState.allAudits = appState.allAudits.filter(a => a.id !== auditId);
+      saveAuditsToStorage();
+      renderAuditHistory();
+      renderStatistics();
+      showToast('Denetim silindi');
+    }
+
+    function deleteAudit(auditId) {
+      const deleteBtn = event.target;
+      
+      if (deleteBtn.textContent.includes('Denetimi Sil')) {
+        deleteBtn.textContent = '⚠️ Silmek için tekrar tıklayın';
+        deleteBtn.className = 'w-full py-3 bg-gradient-to-r from-orange-500 to-orange-700 text-white font-semibold rounded-xl hover:shadow-lg transition';
+        
+        setTimeout(() => {
+          deleteBtn.textContent = '🗑️ Denetimi Sil';
+          deleteBtn.className = 'w-full py-3 bg-gradient-to-r from-red-500 to-red-700 text-white font-semibold rounded-xl hover:shadow-lg transition';
+        }, 3000);
+        return;
+      }
+      
+      appState.allAudits = appState.allAudits.filter(a => a.id !== auditId);
+      saveAuditsToStorage();
+      renderAuditHistory();
+      closeDetailModal();
+      showToast('Denetim silindi');
+    }
+
+    function downloadAuditPDF(auditId) {
+      const audit = appState.allAudits.find(a => a.id === auditId);
+      if (!audit) return;
+
+      appState.schoolCode = audit.school_code;
+      appState.schoolName = audit.school_name;
+      appState.schoolDistrict = audit.school_district || '';
+      appState.auditDate = audit.audit_date;
+      appState.answers = audit.answers || {};
+      appState.photos = audit.photos || {};
+      
+      downloadPDF();
+    }
+
+    // Sayfa Göster
+    function showPage(page) {
+      const existingWarnings = document.querySelectorAll('.unanswered-warning');
+      existingWarnings.forEach(w => w.remove());
+      
+      document.getElementById('home-page').classList.add('hidden');
+      document.getElementById('personnel-page').classList.add('hidden');
+      document.getElementById('audit-page').classList.add('hidden');
+      document.getElementById('summary-page').classList.add('hidden');
+      
+      document.getElementById(`${page}-page`).classList.remove('hidden');
+      appState.currentPage = page;
+      
+      if (page === 'audit') {
+        setTimeout(() => {
+          const auditPage = document.getElementById('audit-page');
+          auditPage.scrollTop = 0;
+        }, 50);
+      } else {
+        window.scrollTo(0, 0);
+      }
+    }
+
+    // Personel Sayısı Hesaplama
+    function calculateTotalPersonnel() {
+      const managerCount = parseInt(document.getElementById('manager-count').value) || 0;
+      const teacherCount = parseInt(document.getElementById('teacher-count').value) || 0;
+      const officerCount = parseInt(document.getElementById('officer-count').value) || 0;
+      const servantCount = parseInt(document.getElementById('servant-count').value) || 0;
+      const workerCount = parseInt(document.getElementById('worker-count').value) || 0;
+      const typCount = parseInt(document.getElementById('typ-count').value) || 0;
+      const paidTeacherCount = parseInt(document.getElementById('paid-teacher-count').value) || 0;
+      const contractCount = parseInt(document.getElementById('contract-count').value) || 0;
+      const masterInstructorCount = parseInt(document.getElementById('master-instructor-count').value) || 0;
+      const disabledCount = parseInt(document.getElementById('disabled-count').value) || 0;
+      const exconvictCount = parseInt(document.getElementById('exconvict-count').value) || 0;
+      const chronicCount = parseInt(document.getElementById('chronic-count').value) || 0;
+
+      const total = managerCount + teacherCount + officerCount + servantCount + workerCount + 
+                    typCount + paidTeacherCount + contractCount + masterInstructorCount + 
+                    disabledCount + exconvictCount + chronicCount;
+
+      document.getElementById('total-personnel').value = total;
+    }
+
+    // Öğrenci Sayısı Hesaplama
+    function calculateTotalStudents() {
+      const normalCount = parseInt(document.getElementById('normal-student-count').value) || 0;
+      const disabledCount = parseInt(document.getElementById('disabled-student-count').value) || 0;
+      const inclusionCount = parseInt(document.getElementById('inclusion-student-count').value) || 0;
+      const chronicCount = parseInt(document.getElementById('chronic-student-count').value) || 0;
+
+      const total = normalCount + disabledCount + inclusionCount + chronicCount;
+
+      document.getElementById('total-students').value = total;
+    }
+
+    // Kategori Render Et
+    function renderCurrentCategory() {
+      const existingWarnings = document.querySelectorAll('.unanswered-warning');
+      existingWarnings.forEach(w => w.remove());
+      
+      const catKey = categoryOrder[appState.currentCategoryIndex];
+      const category = auditQuestions[catKey];
+      
+      document.getElementById('category-title').textContent = category.title;
+      document.getElementById('school-info-display').textContent = 
+        `${appState.schoolName} • ${appState.schoolDistrict} • ${appState.auditDate}`;
+
+      let totalYesCount = 0, totalNoCount = 0, totalNaCount = 0;
+      Object.values(appState.answers).forEach(answer => {
+        if (answer.value === 'yes') totalYesCount++;
+        else if (answer.value === 'no') totalNoCount++;
+        else if (answer.value === 'na') totalNaCount++;
+      });
+
+      const statsContainer = document.getElementById('total-stats');
+      statsContainer.innerHTML = `
+        <div class="bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-center">
+          <div class="text-sm font-bold text-green-600">${totalYesCount}</div>
+          <div class="text-xs text-green-700">Evet</div>
+        </div>
+        <div class="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-center">
+          <div class="text-sm font-bold text-red-600">${totalNoCount}</div>
+          <div class="text-xs text-red-700">Hayır</div>
+        </div>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2 text-center">
+          <div class="text-sm font-bold text-yellow-600">${totalNaCount}</div>
+          <div class="text-xs text-yellow-700">Gerekli Değil</div>
+        </div>
+      `;
+
+      const container = document.getElementById('questions-container');
+      container.innerHTML = '';
+
+      category.questions.forEach((q, idx) => {
+        const answer = appState.answers[q.code] || {};
+        const hasPreviousDof = appState.previousDeficiencies.find(d => d.code === q.code && !d.resolved);
+        
+        if (hasPreviousDof && !answer.value) {
+          appState.answers[q.code] = {
+            value: 'no',
+            dof: hasPreviousDof.dof || q.dof,
+            note: hasPreviousDof.note || '',
+            fromPreviousAudit: true
+          };
+          if (hasPreviousDof.photo) {
+            appState.photos[q.code] = hasPreviousDof.photo;
+          }
+        }
+        
+        const currentAnswer = appState.answers[q.code] || {};
+        
+        const questionCard = document.createElement('div');
+        let cardClasses = 'question-card p-4';
+        if (currentAnswer.value === 'yes') cardClasses += ' answer-yes';
+        else if (currentAnswer.value === 'no') cardClasses += ' answer-no';
+        else if (currentAnswer.value === 'na') cardClasses += ' answer-na';
+        questionCard.className = cardClasses;
+        questionCard.innerHTML = `
+          ${hasPreviousDof ? `
+            <div class="text-white text-xs font-medium px-3 py-1 rounded-full inline-block mb-2 border-4 border-red-400" style="background: linear-gradient(135deg, #fca5a5, #ef4444);">
+              ⚠️ Önceki denetimden devam eden eksiklik
+            </div>
+          ` : ''}
+          <div class="mb-3">
+            <p class="text-gray-800 font-medium text-lg">${q.code}. ${q.text}</p>
+          </div>
+          
+          <div class="flex gap-2 mb-3">
+            <button class="btn-answer btn-yes flex-1 py-2 rounded-lg font-medium ${currentAnswer.value === 'yes' ? 'selected' : ''}" 
+                    onclick="setAnswer('${q.code}', 'yes', '${q.dof.replace(/'/g, "\\'")}')">
+              ✓ Evet
+            </button>
+            <button class="btn-answer btn-no flex-1 py-2 rounded-lg font-medium ${currentAnswer.value === 'no' ? 'selected' : ''}"
+                    onclick="setAnswer('${q.code}', 'no', '${q.dof.replace(/'/g, "\\'")}')">
+              ✗ Hayır
+            </button>
+            <button class="btn-answer btn-na flex-1 py-2 rounded-lg font-medium ${currentAnswer.value === 'na' ? 'selected' : ''}"
+                    onclick="setAnswer('${q.code}', 'na', '${q.dof.replace(/'/g, "\\'")}')">
+              ◯ Gerekli Değil
+            </button>
+          </div>
+          
+          <div id="extra-${q.code}" class="${currentAnswer.value ? '' : 'hidden'}">
+            ${currentAnswer.value === 'no' ? `
+              <div class="mb-3">
+                <label for="dof-${q.code}" class="block text-sm font-medium text-gray-600 mb-1">DÖF Metni</label>
+                <div class="flex gap-2">
+                  <input type="text" id="dof-${q.code}" value="${currentAnswer.dof || q.dof}" 
+                         class="flex-1 px-3 py-2 border border-red-200 rounded-lg text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                         oninput="markDofEdited('${q.code}')">
+                  <button id="save-dof-${q.code}" class="hidden px-3 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition"
+                          onclick="saveDof('${q.code}')">
+                    Kaydet
+                  </button>
+                </div>
+              </div>
+              <button class="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition mb-3"
+                      onclick="openPhotoModal('${q.code}')">
+                📷 Fotoğraf Çek / Resim Yükle
+              </button>
+              ${appState.photos[q.code] ? `
+                <div class="mb-3 relative">
+                  <img src="${appState.photos[q.code]}" alt="Question photo" loading="lazy" class="w-full h-32 object-cover rounded-lg">
+                  <button onclick="removePhoto('${q.code}')" 
+                          class="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full hover:bg-red-600 transition shadow-lg font-bold">
+                    ✕
+                  </button>
+                </div>
+              ` : ''}
+            ` : ''}
+            
+            <div>
+              <label for="note-${q.code}" class="block text-sm font-medium text-gray-600 mb-1">Açıklama (max 20 karakter)</label>
+              <input type="text" id="note-${q.code}" 
+                     value="${currentAnswer.note || (currentAnswer.value === 'na' ? 'Gerekli Değil' : '')}" 
+                     maxlength="20"
+                     class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                     placeholder="Açıklama ekleyin..."
+                     onchange="saveNote('${q.code}')">
+            </div>
+          </div>
+        `;
+        
+        container.appendChild(questionCard);
+      });
+
+      updateProgress();
+      updateNavButtons();
+    }
+
+    // Cevap Kaydet
+    function setAnswer(code, value, dof) {
+      const prevAnswer = appState.answers[code] || {};
+      
+      appState.answers[code] = {
+        value: value,
+        dof: value === 'no' ? (prevAnswer.dof || dof) : '',
+        note: value === 'na' ? 'Gerekli Değil' : ''
+      };
+
+      const prevDef = appState.previousDeficiencies.find(d => d.code === code);
+      if (prevDef && value === 'yes') {
+        prevDef.resolved = true;
+      }
+
+      saveTempAudit();
+      renderCurrentCategory();
+    }
+
+    // DÖF Düzenleme
+    function markDofEdited(code) {
+      document.getElementById(`save-dof-${code}`).classList.remove('hidden');
+    }
+
+    function saveDof(code) {
+      const dofInput = document.getElementById(`dof-${code}`);
+      if (appState.answers[code]) {
+        appState.answers[code].dof = dofInput.value;
+      }
+      document.getElementById(`save-dof-${code}`).classList.add('hidden');
+      saveTempAudit();
+      showToast('DÖF metni kaydedildi');
+    }
+
+    // Not Kaydet
+    function saveNote(code) {
+      const noteInput = document.getElementById(`note-${code}`);
+      if (appState.answers[code]) {
+        let note = noteInput.value;
+        if (appState.answers[code].value === 'na' && note && !note.startsWith('Gerekli Değil')) {
+          note = 'Gerekli Değil, ' + note;
+          noteInput.value = note.substring(0, 20);
+        }
+        appState.answers[code].note = noteInput.value;
+      }
+      saveTempAudit();
+    }
+
+    // Fotoğraf İşlemleri
+    function openPhotoModal(code) {
+      appState.currentPhotoQuestion = code;
+      document.getElementById('photo-modal').classList.remove('hidden');
+      document.getElementById('photo-preview-container').classList.add('hidden');
+    }
+
+    function closePhotoModal() {
+      document.getElementById('photo-modal').classList.add('hidden');
+      appState.currentPhotoQuestion = null;
+    }
+
+    function handlePhotoSelect(file) {
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          const maxWidth = 600;
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.4);
+          
+          if (compressedDataUrl.length > 150000) {
+            const smallerWidth = 500;
+            const smallerHeight = (height * smallerWidth) / width;
+            canvas.width = smallerWidth;
+            canvas.height = smallerHeight;
+            ctx.drawImage(img, 0, 0, smallerWidth, smallerHeight);
+            const finalDataUrl = canvas.toDataURL('image/jpeg', 0.3);
+            document.getElementById('photo-preview').src = finalDataUrl;
+          } else {
+            document.getElementById('photo-preview').src = compressedDataUrl;
+          }
+          
+          document.getElementById('photo-preview-container').classList.remove('hidden');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function savePhotoFunc() {
+      const preview = document.getElementById('photo-preview');
+      if (preview.src && appState.currentPhotoQuestion) {
+        appState.photos[appState.currentPhotoQuestion] = preview.src;
+        saveTempAudit();
+        showToast('Fotoğraf kaydedildi');
+        closePhotoModal();
+        renderCurrentCategory();
+      }
+    }
+
+    function removePhoto(code) {
+      delete appState.photos[code];
+      saveTempAudit();
+      renderCurrentCategory();
+    }
+
+    // Navigasyon
+    function updateNavButtons() {
+      const prevBtn = document.getElementById('prev-category');
+      prevBtn.disabled = false;
+      
+      const isLastCategory = appState.currentCategoryIndex === categoryOrder.length - 1;
+      const nextBtn = document.getElementById('next-category');
+      nextBtn.textContent = isLastCategory ? 'Raporu Önizle →' : 'Sonraki →';
+    }
+
+    function goToPrevCategory() {
+      if (appState.currentCategoryIndex > 0) {
+        appState.currentCategoryIndex--;
+        saveTempAudit();
+        renderCurrentCategory();
+        setTimeout(() => {
+          const auditPage = document.getElementById('audit-page');
+          auditPage.scrollTop = 0;
+        }, 50);
+      } else {
+        saveTempAudit();
+        showPage('personnel');
+      }
+    }
+
+    function goToNextCategory() {
+      const catKey = categoryOrder[appState.currentCategoryIndex];
+      const category = auditQuestions[catKey];
+      
+      const unansweredQuestion = category.questions.find(q => !appState.answers[q.code] || !appState.answers[q.code].value);
+      
+      if (unansweredQuestion) {
+        const existingWarnings = document.querySelectorAll('.unanswered-warning');
+        existingWarnings.forEach(w => w.remove());
+        
+        setTimeout(() => {
+          const questionElements = document.querySelectorAll('.question-card');
+          const questionIndex = category.questions.findIndex(q => q.code === unansweredQuestion.code);
+          if (questionElements[questionIndex]) {
+            questionElements[questionIndex].scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center' 
+            });
+            
+            const warning = document.createElement('div');
+            warning.className = 'unanswered-warning';
+            warning.textContent = '⚠️ Lütfen tüm soruları cevaplayın';
+            
+            const cardParent = questionElements[questionIndex].parentElement;
+            const originalPosition = cardParent.style.position;
+            cardParent.style.position = 'relative';
+            
+            warning.style.top = (questionElements[questionIndex].offsetTop - 2 - 48) + 'px';
+            cardParent.appendChild(warning);
+            
+            setTimeout(() => {
+              warning.remove();
+              cardParent.style.position = originalPosition;
+            }, 3000);
+            
+            questionElements[questionIndex].classList.add('blink-border');
+            setTimeout(() => {
+              questionElements[questionIndex].classList.remove('blink-border');
+            }, 2000);
+          }
+        }, 100);
+        return;
+      }
+
+      if (appState.currentCategoryIndex < categoryOrder.length - 1) {
+        appState.currentCategoryIndex++;
+        saveTempAudit();
+        renderCurrentCategory();
+        setTimeout(() => {
+          const auditPage = document.getElementById('audit-page');
+          auditPage.scrollTop = 0;
+        }, 50);
+      } else {
+        showSummary();
+      }
+    }
+
+    // Özet Göster
+    function showSummary() {
+      showPage('summary');
+      renderSummary();
+      renderOtherDofList();
+    }
+
+    // Diğer DÖF Listesi
+    function renderOtherDofList() {
+      const listContainer = document.getElementById('other-dof-list');
+      
+      if (appState.otherDeficiencies.length === 0) {
+        listContainer.innerHTML = '';
+        return;
+      }
+
+      listContainer.innerHTML = appState.otherDeficiencies.map((dof, index) => `
+        <div class="p-3 bg-white border border-purple-300 rounded-xl flex items-start gap-3">
+          <div class="flex-1">
+            <p class="text-purple-900 font-medium">${dof}</p>
+          </div>
+          <button onclick="removeOtherDof(${index})" 
+                  class="text-red-500 hover:text-red-700 font-bold text-xl">
+            ✕
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // Diğer DÖF Ekle
+    function addOtherDof() {
+      const input = document.getElementById('other-dof-text');
+      const dofText = input.value.trim();
+      
+      if (!dofText) {
+        showToast('Lütfen DÖF metnini girin');
+        return;
+      }
+
+      appState.otherDeficiencies.push(dofText);
+      input.value = '';
+      saveTempAudit();
+      renderOtherDofList();
+      renderSummary();
+      showToast('Diğer DÖF eklendi');
+    }
+
+    // Diğer DÖF Sil
+    function removeOtherDof(index) {
+      appState.otherDeficiencies.splice(index, 1);
+      saveTempAudit();
+      renderOtherDofList();
+      renderSummary();
+      showToast('Diğer DÖF silindi');
+    }
+    
+    // Formu Temizle
+    function resetForm() {
+      appState.answers = {};
+      appState.photos = {};
+      appState.currentCategoryIndex = 0;
+      appState.editingAuditId = null;
+      appState.previousDeficiencies = [];
+      
+      document.getElementById('previous-audit-warning').classList.add('hidden');
+    }
+    
+    function clearAllForm() {
+      document.getElementById('school-code').value = '';
+      document.getElementById('school-name').value = '';
+      document.getElementById('school-district').value = '';
+      document.getElementById('audit-date').valueAsDate = new Date();
+      document.getElementById('school-address').value = '';
+      document.getElementById('school-scope').value = '';
+      document.getElementById('school-hazard-class').value = '';
+      document.getElementById('school-phone').value = '';
+      document.getElementById('school-email').value = '';
+      appState.schoolCode = '';
+      appState.schoolName = '';
+      appState.schoolDistrict = '';
+      appState.auditDate = '';
+      appState.schoolAddress = '';
+      appState.schoolScope = '';
+      appState.schoolHazardClass = '';
+      appState.schoolPhone = '';
+      appState.schoolEmail = '';
+      appState.answers = {};
+      appState.photos = {};
+      appState.currentCategoryIndex = 0;
+      appState.editingAuditId = null;
+      appState.previousDeficiencies = [];
+      
+      document.getElementById('previous-audit-warning').classList.add('hidden');
+    }
+
+    function renderSummary() {
+      const content = document.getElementById('summary-content');
+      
+      let yesCount = 0, noCount = 0, naCount = 0;
+      const deficiencies = [];
+      const continuingDeficiencies = [];
+      const newDeficiencies = [];
+      const resolvedDeficiencies = [];
+      
+      Object.entries(appState.answers).forEach(([code, answer]) => {
+        if (answer.value === 'yes') {
+          yesCount++;
+          const wasPrevious = appState.previousDeficiencies.find(pd => pd.code === code);
+          if (wasPrevious) {
+            wasPrevious.resolved = true;
+            resolvedDeficiencies.push({ code, dof: wasPrevious.dof });
+          }
+        }
+        else if (answer.value === 'no') {
+          noCount++;
+          const photo = appState.photos[code] || null;
+          const isPrevious = appState.previousDeficiencies.find(pd => pd.code === code && !pd.resolved);
+          
+          if (isPrevious) {
+            continuingDeficiencies.push({ code, dof: answer.dof, note: answer.note, photo });
+          } else {
+            newDeficiencies.push({ code, dof: answer.dof, note: answer.note, photo });
+          }
+          
+          deficiencies.push({ code, dof: answer.dof, note: answer.note, photo, isPrevious: !!isPrevious });
+        }
+        else if (answer.value === 'na') naCount++;
+      });
+
+      content.innerHTML = `
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+          <h3 class="text-lg font-bold text-gray-800 mb-4">📋 Denetim Bilgileri</h3>
+          <div class="grid grid-cols-2 gap-4 text-sm">
+            <div><span class="text-gray-500">Okul:</span> <strong>${appState.schoolName}</strong></div>
+            <div><span class="text-gray-500">Kod:</span> <strong>${appState.schoolCode}</strong></div>
+            <div><span class="text-gray-500">İlçe:</span> <strong>${appState.schoolDistrict || '-'}</strong></div>
+            <div><span class="text-gray-500">Tarih:</span> <strong>${appState.auditDate}</strong></div>
+            <div class="col-span-2"><span class="text-gray-500">Adres:</span> <strong>${appState.schoolAddress || '-'}</strong></div>
+            <div><span class="text-gray-500">Kapsam:</span> <strong>${appState.schoolScope || '-'}</strong></div>
+            <div><span class="text-gray-500">Tehlike Sınıfı:</span> <strong>${appState.schoolHazardClass || '-'}</strong></div>
+            <div><span class="text-gray-500">Telefon:</span> <strong>${appState.schoolPhone || '-'}</strong></div>
+            <div><span class="text-gray-500">E-Posta:</span> <strong>${appState.schoolEmail || '-'}</strong></div>
+            <div><span class="text-gray-500">Toplam Personel:</span> <strong>${appState.totalPersonnel}</strong></div>
+            <div><span class="text-gray-500">Toplam Öğrenci:</span> <strong>${appState.totalStudents}</strong></div>
+            <div><span class="text-gray-500">Toplam Soru:</span> <strong>${getTotalQuestions()}</strong></div>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-3 gap-3">
+          <div class="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+            <div class="text-2xl font-bold text-green-600">${yesCount}</div>
+            <div class="text-xs text-green-700">Evet</div>
+          </div>
+          <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
+            <div class="text-2xl font-bold text-red-600">${noCount}</div>
+            <div class="text-xs text-red-700">Hayır</div>
+          </div>
+          <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-center">
+            <div class="text-2xl font-bold text-yellow-600">${naCount}</div>
+            <div class="text-xs text-yellow-700">Gerekli Değil</div>
+          </div>
+        </div>
+
+        ${appState.previousDeficiencies.length > 0 ? `
+          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl shadow-lg p-6 border border-blue-200">
+            <h3 class="text-lg font-bold text-blue-800 mb-3">📊 Önceki Denetim Takibi</h3>
+            <div class="grid grid-cols-3 gap-3 mb-4">
+              <div class="bg-white rounded-lg p-3 text-center border border-blue-200">
+                <div class="text-xl font-bold text-orange-600">${continuingDeficiencies.length}</div>
+                <div class="text-xs text-gray-600">Devam Eden</div>
+              </div>
+              <div class="bg-white rounded-lg p-3 text-center border border-blue-200">
+                <div class="text-xl font-bold text-green-600">${resolvedDeficiencies.length}</div>
+                <div class="text-xs text-gray-600">Giderildi</div>
+              </div>
+              <div class="bg-white rounded-lg p-3 text-center border border-blue-200">
+                <div class="text-xl font-bold text-red-600">${newDeficiencies.length}</div>
+                <div class="text-xs text-gray-600">Yeni Eksiklik</div>
+              </div>
+            </div>
+            ${resolvedDeficiencies.length > 0 ? `
+              <div class="bg-green-50 border border-green-300 rounded-lg p-3 mb-3">
+                <h4 class="text-sm font-bold text-green-800 mb-2">✅ Giderilen Eksiklikler</h4>
+                <div class="space-y-1">
+                  ${resolvedDeficiencies.map(d => `
+                    <div class="text-xs text-green-700">• ${d.code}: ${d.dof}</div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        ` : ''}
+        
+        ${deficiencies.length > 0 ? `
+          <div class="bg-white rounded-2xl shadow-lg p-6">
+            <h3 class="text-lg font-bold text-red-600 mb-4">⚠️ Düzeltici Önleyici Faaliyetler (${deficiencies.length})</h3>
+            
+            ${continuingDeficiencies.length > 0 ? `
+              <div class="mb-4">
+                <h4 class="text-sm font-bold text-orange-600 mb-2">🔄 Önceki Denetimden Devam Eden Eksiklikler (${continuingDeficiencies.length})</h4>
+                <div class="space-y-3">
+                  ${continuingDeficiencies.map(d => `
+                    <div class="p-3 bg-orange-50 border-2 border-orange-300 rounded-xl">
+                      <div class="flex items-start gap-2 mb-2">
+                        <span class="bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded">${d.code}</span>
+                        <span class="bg-red-500 text-white text-xs px-2 py-1 rounded">⚠️ DEVAM EDİYOR</span>
+                      </div>
+                      <p class="text-orange-900 font-medium">${d.dof}</p>
+                      ${d.note ? `<p class="text-orange-700 text-sm mt-1">Not: ${d.note}</p>` : ''}
+                      ${d.photo ? `<img src="${d.photo}" alt="Deficiency photo" loading="lazy" class="w-full h-24 object-cover rounded-lg mt-2">` : ''}
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+
+            ${newDeficiencies.length > 0 ? `
+              <div>
+                <h4 class="text-sm font-bold text-red-600 mb-2">🆕 Yeni Tespit Edilen Eksiklikler (${newDeficiencies.length})</h4>
+                <div class="space-y-3">
+                  ${newDeficiencies.map(d => `
+                    <div class="p-3 bg-red-50 border border-red-200 rounded-xl">
+                      <div class="flex items-start gap-2 mb-2">
+                        <span class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">${d.code}</span>
+                      </div>
+                      <p class="text-red-800 font-medium">${d.dof}</p>
+                      ${d.note ? `<p class="text-red-600 text-sm mt-1">Not: ${d.note}</p>` : ''}
+                      ${d.photo ? `<img src="${d.photo}" alt="Deficiency photo" loading="lazy" class="w-full h-24 object-cover rounded-lg mt-2">` : ''}
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        ` : `
+          <div class="bg-green-50 border border-green-200 rounded-2xl p-6 text-center">
+            <div class="text-4xl mb-2">✅</div>
+            <h3 class="text-lg font-bold text-green-700">Tebrikler!</h3>
+            <p class="text-green-600">Tüm maddeler uygun bulunmuştur.</p>
+          </div>
+        `}
+
+        ${(() => {
+          const otherDofs = appState.otherDeficiencies || [];
+          if (otherDofs.length === 0) return '';
+          
+          return `
+            <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl shadow-lg p-6 border border-purple-300">
+              <h3 class="text-lg font-bold text-purple-900 mb-4">📝 Diğer DÖF (${otherDofs.length})</h3>
+              <div class="space-y-3">
+                ${otherDofs.map((dof, idx) => `
+                  <div class="p-3 bg-white border border-purple-200 rounded-xl">
+                    <div class="flex items-start gap-2 mb-2">
+                      <span class="bg-purple-500 text-white text-xs font-bold px-2 py-1 rounded">DİĞER ${idx + 1}</span>
+                    </div>
+                    <p class="text-purple-900 font-medium">${dof}</p>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        })()}
+      `;
+    }
+
+    // Denetimi Kaydet
+
+async function saveAudit() {
+  console.log("Kayıt işlemi başlatıldı...");
+  const saveBtn = document.getElementById('save-audit');
+  saveBtn.disabled = true;
+  saveBtn.textContent = '⏳ Google\'a Gönderiliyor...';
+
+  try {
+    // 1. Veri Paketini Hazırla
+    const veriler = {
+      kurum_adi: document.getElementById('school-name').value || "Belirtilmedi",
+      denetimci: document.getElementById('inspector-name').value || "İSG Uzmanı",
+      tarih: document.getElementById('audit-date').value || new Date().toLocaleDateString('tr-TR'),
+      issues: []
+    };
+
+    console.log("Okul Adı:", veriler.kurum_adi);
+
+    // 2. appState.answers içindeki verileri topla
+    // Senin kodunda cevaplar appState.answers[code].value içinde (yes/no)
+    Object.keys(auditQuestions).forEach(catKey => {
+      const category = auditQuestions[catKey];
+      category.questions.forEach(q => {
+        const answerData = appState.answers[q.code];
+        if (answerData) {
+          veriler.issues.push({
+            category: category.title,
+            code: q.code,
+            text: q.text,
+            answer: answerData.value === 'yes' ? 'Evet' : 'Hayır',
+            dof: answerData.value === 'no' ? (answerData.observation || q.dof) : '-'
+          });
+        }
+      });
+    });
+
+    console.log("Paketlenen soru sayısı:", veriler.issues.length);
+
+    if (veriler.issues.length === 0) {
+      alert("Lütfen en az bir soruyu cevaplayın!");
+      saveBtn.disabled = false;
+      saveBtn.textContent = '💾 Denetimi Kaydet';
+      return;
+    }
+
+    // 3. Google Apps Script'e Gönder
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+      console.log("Google Script bağlantısı aktif, gönderiliyor...");
+      
+      google.script.run
+        .withSuccessHandler(function(response) {
+          console.log("Sunucudan gelen yanıt:", response);
+          const res = JSON.parse(response);
+          
+          if (res.status === "ok") {
+            saveBtn.disabled = false;
+            saveBtn.textContent = '✅ Kayıt Başarılı';
+            saveBtn.classList.replace('bg-blue-600', 'bg-green-600');
+            alert('Başarılı! Veriler E-Tabloya işlendi.');
+            if (res.url) window.open(res.url, '_blank');
+            clearTempAudit();
+          } else {
+            alert("Sunucu Hatası: " + res.message);
+            saveBtn.disabled = false;
+            saveBtn.textContent = '❌ Hata Oluştu';
+          }
+        })
+        .withFailureHandler(function(err) {
+          console.error("Google Script Hatası:", err);
+          alert("Bağlantı Hatası: " + err);
+          saveBtn.disabled = false;
+          saveBtn.textContent = '❌ Tekrar Dene';
+        })
+        .processData(JSON.stringify(veriler));
+    } else {
+      console.error("Google Script objesi bulunamadı!");
+      alert("Hata: Uygulama Google sunucularına bağlanamıyor. Lütfen 'Dağıtılmış URL' üzerinden açtığınızdan emin olun.");
+      saveBtn.disabled = false;
+    }
+
+  } catch (error) {
+    console.error('Kritik hata:', error);
+    saveBtn.disabled = false;
+    saveBtn.textContent = '❌ Hata';
+  }
+}
+
+
+    function saveAudit() {
+      const saveBtn = document.getElementById('save-audit');
+      saveBtn.disabled = true;
+      saveBtn.textContent = '⏳ Kaydediliyor...';
+
+      try {
+        const filteredPhotos = {};
+        Object.keys(appState.photos).forEach(code => {
+          if (appState.answers[code] && appState.answers[code].value === 'no') {
+            filteredPhotos[code] = appState.photos[code];
+          }
+        });
+
+        if (appState.editingAuditId) {
+          const auditIndex = appState.allAudits.findIndex(a => a.id === appState.editingAuditId);
+          if (auditIndex !== -1) {
+            appState.allAudits[auditIndex] = {
+              ...appState.allAudits[auditIndex],
+              school_name: appState.schoolName,
+              school_code: appState.schoolCode,
+              school_district: appState.schoolDistrict,
+              audit_date: appState.auditDate,
+              school_address: appState.schoolAddress,
+              school_scope: appState.schoolScope,
+              school_hazard_class: appState.schoolHazardClass,
+              school_phone: appState.schoolPhone,
+              school_email: appState.schoolEmail,
+              manager_count: appState.managerCount,
+              teacher_count: appState.teacherCount,
+              officer_count: appState.officerCount,
+              servant_count: appState.servantCount,
+              worker_count: appState.workerCount,
+              typ_count: appState.typCount,
+              paid_teacher_count: appState.paidTeacherCount,
+              contract_count: appState.contractCount,
+              master_instructor_count: appState.masterInstructorCount,
+              disabled_count: appState.disabledCount,
+              exconvict_count: appState.exconvictCount,
+              chronic_count: appState.chronicCount,
+              total_personnel: appState.totalPersonnel,
+              normal_student_count: appState.normalStudentCount,
+              disabled_student_count: appState.disabledStudentCount,
+              inclusion_student_count: appState.inclusionStudentCount,
+              chronic_student_count: appState.chronicStudentCount,
+              total_students: appState.totalStudents,
+              answers: appState.answers,
+              photos: filteredPhotos,
+              previous_deficiencies: appState.previousDeficiencies,
+              other_deficiencies: appState.otherDeficiencies,
+              status: 'completed'
+            };
+          }
+        } else {
+          const newAudit = {
+            id: generateId(),
+            school_name: appState.schoolName,
+            school_code: appState.schoolCode,
+            school_district: appState.schoolDistrict,
+            audit_date: appState.auditDate,
+            school_address: appState.schoolAddress,
+            school_scope: appState.schoolScope,
+            school_hazard_class: appState.schoolHazardClass,
+            school_phone: appState.schoolPhone,
+            school_email: appState.schoolEmail,
+            manager_count: appState.managerCount,
+            teacher_count: appState.teacherCount,
+            officer_count: appState.officerCount,
+            servant_count: appState.servantCount,
+            worker_count: appState.workerCount,
+            typ_count: appState.typCount,
+            paid_teacher_count: appState.paidTeacherCount,
+            contract_count: appState.contractCount,
+            master_instructor_count: appState.masterInstructorCount,
+            disabled_count: appState.disabledCount,
+            exconvict_count: appState.exconvictCount,
+            chronic_count: appState.chronicCount,
+            total_personnel: appState.totalPersonnel,
+            normal_student_count: appState.normalStudentCount,
+            disabled_student_count: appState.disabledStudentCount,
+            inclusion_student_count: appState.inclusionStudentCount,
+            chronic_student_count: appState.chronicStudentCount,
+            total_students: appState.totalStudents,
+            answers: appState.answers,
+            photos: filteredPhotos,
+            previous_deficiencies: appState.previousDeficiencies,
+            other_deficiencies: appState.otherDeficiencies,
+            status: 'completed',
+            created_at: new Date().toISOString()
+          };
+          appState.allAudits.push(newAudit);
+        }
+
+        saveAuditsToStorage();
+        renderAuditHistory();
+
+        saveBtn.disabled = false;
+        saveBtn.textContent = '💾 Denetimi Kaydet';
+
+        showToast('Denetim başarıyla kaydedildi ✓');
+        appState.editingAuditId = null;
+        clearTempAudit();
+        setTimeout(() => {
+          clearAllForm();
+          showPage('home');
+          switchTab('data');
+        }, 1500);
+      } catch (error) {
+        console.error('Kaydetme hatasi:', error);
+        showToast('Kaydetme hatasi: ' + error.message);
+        saveBtn.disabled = false;
+        saveBtn.textContent = '💾 Denetimi Kaydet';
+      }
+    }
+
+    // PDF İndir
+
+
+async function downloadPDF() {
+    const downloadBtn = document.getElementById('download-pdf');
+    if (!downloadBtn) return;
+    
+    const originalText = downloadBtn.textContent;
+    downloadBtn.disabled = true;
+    downloadBtn.textContent = '⏳ PDF Hazırlanıyor...';
+
+    try {
+        const jspdf = window.jspdf;
+        if (!jspdf) throw new Error("jsPDF kütüphanesi bulunamadı!");
+        
+        const { jsPDF } = jspdf;
+        const doc = new jsPDF();
+
+        // --- YARDIMCI FONKSİYONLAR ---
+        const formatDate = (dateStr) => {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return dateStr;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        };
+
+        // --- 1. TÜRKÇE FONT YÜKLEME ---
+        const fontUrl = "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf";
+        const response = await fetch(fontUrl);
+        const fontBlob = await response.blob();
+        const reader = new FileReader();
+        const fontBase64 = await new Promise((resolve) => {
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
+            reader.readAsDataURL(fontBlob);
+        });
+
+        doc.addFileToVFS("Roboto-Regular.ttf", fontBase64);
+        doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
+        doc.setFont("Roboto");
+
+        // --- AYARLAR ---
+        const greenFill = [22, 163, 74]; 
+        const redFill = [185, 28, 28];
+        const rowHeight = 6; 
+
+        // --- GÜNCELLENMİŞ SÜTUN GENİŞLİKLERİ ---
+        const colStylesDenetim = {
+            0: { cellWidth: 10, halign: 'center' }, // Soru Kodu (10 mm yapıldı)
+            1: { cellWidth: 102 },                  // Soru Metni (Koddan artan 5mm buraya eklendi)
+            2: { cellWidth: 15, halign: 'center' }, // EVET
+            3: { cellWidth: 15, halign: 'center' }, // HAYIR
+            4: { cellWidth: 40 }                    // AÇIKLAMA (Sabit 40 mm)
+        };
+
+        // --- 2. ÜST BİLGİ (HEADER) ---
+        const drawHeader = (data) => {
+            const ilceAdi = (appState.schoolDistrict || "..........").toUpperCase();
+            doc.autoTable({
+                startY: 10,
+                tableWidth: 182,
+                margin: { left: 14 },
+                theme: 'grid',
+                styles: { font: "Roboto", fontSize: 7, cellPadding: 1, valign: 'middle', textColor: [0, 0, 0], lineWidth: 0.2 },
+                body: [
+                    [
+                        { content: 'İŞYERİ SAĞLIK VE\nGÜVENLİK BİRİMİ', rowSpan: 5, styles: { cellWidth: 30, fontStyle: 'bold', fontSize: 6, valign: 'bottom', halign: 'center', minCellHeight: 25 } },
+                        { content: `ANKARA İL MİLLİ EĞİTİM MÜDÜRLÜĞÜ\n${ilceAdi} İLÇE MİLLİ EĞİTİM MÜDÜRLÜĞÜ\nOKUL/KURUM İSG REHBERLİK, ÇALIŞMA ORTAMI GÖZETİM VE DENETLEME FORMU`, rowSpan: 5, styles: { cellWidth: 92, fontSize: 8, fontStyle: 'bold', halign: 'center' } },
+                        { content: ' Doküman No', styles: { cellWidth: 28, halign: 'left' } },
+                        { content: 'FRM.014', styles: { cellWidth: 32, halign: 'center' } }
+                    ],
+                    [{ content: ' İlk Yayın Tarihi', styles: { halign: 'left' } }, { content: '30.10.2023', styles: { halign: 'center' } }],
+                    [{ content: ' Revizyon Tarihi', styles: { halign: 'left' } }, { content: '../../20..', styles: { halign: 'center' } }],
+                    [{ content: ' Revizyon No', styles: { halign: 'left' } }, { content: '0', styles: { halign: 'center' } }],
+                    [{ content: ' Sayfa No', styles: { halign: 'left' } }, { content: '' }] 
+                ],
+            });
+            data.settings.margin.top = 38; 
+        };
+
+        const formattedAuditDate = formatDate(appState.auditDate);
+
+        // --- 3. TABLOLAR ---
+
+        // Okul Bilgileri
+        doc.autoTable({
+            startY: 38, 
+            head: [[
+                { content: 'OKUL/KURUM BİLGİLERİ', colSpan: 2, styles: { halign: 'left', valign: 'middle' } }, 
+                { content: `TARİH: ${formattedAuditDate}`, colSpan: 2, styles: { halign: 'right', valign: 'middle', cellPadding: { right: 20 } } } 
+            ]],
+            body: [
+                ['Adı', appState.schoolName || '', 'Tehlike Sınıfı', appState.schoolHazardClass || ''],
+                ['Kodu', appState.schoolCode || '', 'İşyeri Sicil No', appState.schoolRegistrationNumber || ''],
+                ['Adresi', appState.schoolAddress || '', 'Telefon', appState.schoolPhone || ''],
+                ['Kapsam', appState.schoolScope || '', 'E-Posta', appState.schoolEmail || '']
+            ],
+            theme: 'grid',
+            styles: { font: "Roboto", fontSize: 8, cellPadding: 1.2, valign: 'middle', minCellHeight: rowHeight },
+            headStyles: { fillColor: greenFill, textColor: [255, 255, 255], fontStyle: 'bold' },
+            columnStyles: { 0: { cellWidth: 15, fontStyle: 'bold' }, 1: { cellWidth: 70 }, 2: { cellWidth: 31, fontStyle: 'bold' }, 3: { cellWidth: 66 } },
+            didDrawPage: drawHeader
+        });
+
+        // Personel Bilgileri
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 3,
+            head: [['PERSONEL TÜRÜ', 'Normal', 'Engelli', 'Eski Hükümlü', 'Kronik']],
+            body: [
+                ['Yönetici Sayısı', appState.managerCount || '0', '', '', ''],
+                ['Öğretmen Sayısı', appState.teacherCount || '0', '', '', ''],
+                ['Öğrenci Sayısı', appState.totalStudents || '0', appState.disabledStudentCount || '0', '', '']
+            ],
+            theme: 'grid',
+            styles: { font: "Roboto", fontSize: 8, valign: 'middle', minCellHeight: rowHeight, cellPadding: 1.2 },
+            headStyles: { fillColor: greenFill },
+            didDrawPage: drawHeader
+        });
+
+        // Denetim Maddeleri (Kod: 10mm, Açıklama: 40mm)
+        let currentY = doc.lastAutoTable.finalY + 3;
+        let deficiencies = []; 
+        if (typeof categoryOrder !== 'undefined' && typeof auditQuestions !== 'undefined') {
+            for (const catKey of categoryOrder) {
+                const category = auditQuestions[catKey];
+                const rows = category.questions.map(q => {
+                    const ans = appState.answers[q.code] || { value: '', note: '', dof: '' };
+                    if (ans.value === 'no') deficiencies.push(`${ans.dof || 'Belirtilmedi'} (${q.code})`);
+                    return [q.code, q.text, ans.value === 'yes' ? 'X' : '', ans.value === 'no' ? 'X' : '', ans.note || ''];
+                });
+                doc.autoTable({
+                    startY: currentY,
+                    head: [[catKey, category.title, 'EVET', 'HAYIR', 'AÇIKLAMA']],
+                    body: rows,
+                    theme: 'grid',
+                    styles: { font: "Roboto", fontSize: 7, valign: 'middle', minCellHeight: rowHeight, cellPadding: 1.2 },
+                    headStyles: { fillColor: greenFill },
+                    columnStyles: colStylesDenetim, 
+                    pageBreak: 'auto',
+                    didDrawPage: drawHeader
+                });
+                currentY = doc.lastAutoTable.finalY + 3;
+            }
+        }
+
+        // Gözlemler (Kırmızı Bölüm)
+        let finalDofRows = deficiencies.map((dofText, index) => [(index + 1).toString(), dofText]);
+        if (appState.otherDeficiencies && appState.otherDeficiencies.length > 0) {
+            appState.otherDeficiencies.forEach((other, i) => finalDofRows.push([(deficiencies.length + i + 1).toString(), other]));
+        }
+
+        doc.autoTable({
+            startY: currentY + 3,
+            head: [[{ content: 'OKUL/KURUMDA GÖZLEMLER, EKSİKLİKLER, TESPİT, ÖNERİLER VE DEĞERLENDİRMELER', colSpan: 2 }]],
+            body: finalDofRows.length > 0 ? finalDofRows : [['-', 'Yapılan denetimde herhangi bir uygunsuzluk tespit edilmemiştir.']],
+            theme: 'grid',
+            styles: { font: "Roboto", fontSize: 8, cellPadding: 1.2, valign: 'middle', minCellHeight: rowHeight },
+            headStyles: { fillColor: redFill, halign: 'center', fontStyle: 'bold' },
+            columnStyles: { 0: { cellWidth: 10, halign: 'center' } }, // Gözlem numarası kod sütunuyla aynı genişlikte
+            didDrawPage: drawHeader
+        });
+
+        // Onay Bölümü
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 5,
+            head: [[{content: 'ONAY', styles:{halign:'center'}}, {content: 'OKUL / KURUM', colSpan:2, styles:{halign:'center'}}, {content: 'İLÇE MİLLİ EĞİTİM MÜDÜRLÜĞÜ', colSpan:2, styles:{halign:'center'}}]],
+            body: [
+                ['UNVANI', 'Müdür Yard.', 'Okul Müdürü', 'İSG Büro Yön.', 'Şube Müdürü'],
+                ['İMZA', '', '', '', ''],
+                ['ADI SOYADI', appState.vicarName || '', appState.principalName || '', appState.inspectorName || '', appState.subManagerName || ''],
+                ['CEP TEL', '', '', '', '']
+            ],
+            theme: 'grid',
+            styles: { font: "Roboto", fontSize: 7, halign: 'center', valign: 'middle', minCellHeight: rowHeight, cellPadding: 1.2 },
+            headStyles: { fillColor: greenFill },
+            didDrawPage: drawHeader
+        });
+
+        // --- 4. SAYFA NUMARALANDIRMA ---
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            doc.setFontSize(7);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`${i} / ${totalPages}`, 180, 33.0, { align: 'center' }); 
+        }
+
+        doc.save(`ISG_Denetim_Raporu_${appState.schoolCode || 'Rapor'}.pdf`);
+        if (typeof showToast !== 'undefined') showToast('Rapor Başarıyla Hazırlandı! ✓');
+
+    } catch (error) {
+        console.error('PDF Hatası:', error);
+        alert('Hata: ' + error.message);
+    } finally {
+        downloadBtn.disabled = false;
+        downloadBtn.textContent = originalText;
+    }
+}
+
+
+
+
+
+
+
+
+
+    // Event Listeners
+    document.getElementById('school-code').addEventListener('input', checkPreviousAudits);
+    document.getElementById('school-name').addEventListener('input', checkPreviousAudits);
+    
+    document.getElementById('start-audit-btn').addEventListener('click', () => {
+      const schoolCode = document.getElementById('school-code').value.trim();
+      const schoolName = document.getElementById('school-name').value.trim();
+      const schoolDistrict = document.getElementById('school-district').value.trim();
+      const auditDate = document.getElementById('audit-date').value;
+      const schoolAddress = document.getElementById('school-address').value.trim();
+      const schoolScope = document.getElementById('school-scope').value.trim();
+      const schoolHazardClass = document.getElementById('school-hazard-class').value;
+      const schoolPhone = document.getElementById('school-phone').value.trim();
+      const schoolEmail = document.getElementById('school-email').value.trim();
+      
+      if (!schoolCode || !schoolName || !schoolDistrict || !auditDate) {
+        showToast('Lütfen zorunlu alanları doldurun');
+        return;
+      }
+      
+      appState.schoolCode = schoolCode;
+      appState.schoolName = schoolName;
+      appState.schoolDistrict = schoolDistrict;
+      appState.auditDate = auditDate;
+      appState.schoolAddress = schoolAddress;
+      appState.schoolScope = schoolScope;
+      appState.schoolHazardClass = schoolHazardClass;
+      appState.schoolPhone = schoolPhone;
+      appState.schoolEmail = schoolEmail;
+      
+      document.getElementById('personnel-school-info').textContent = 
+        `${appState.schoolName} • ${appState.schoolDistrict} • ${appState.auditDate}`;
+      
+      document.getElementById('manager-count').value = appState.managerCount || 0;
+      document.getElementById('teacher-count').value = appState.teacherCount || 0;
+      document.getElementById('officer-count').value = appState.officerCount || 0;
+      document.getElementById('servant-count').value = appState.servantCount || 0;
+      document.getElementById('worker-count').value = appState.workerCount || 0;
+      document.getElementById('typ-count').value = appState.typCount || 0;
+      document.getElementById('paid-teacher-count').value = appState.paidTeacherCount || 0;
+      document.getElementById('contract-count').value = appState.contractCount || 0;
+      document.getElementById('master-instructor-count').value = appState.masterInstructorCount || 0;
+      document.getElementById('disabled-count').value = appState.disabledCount || 0;
+      document.getElementById('exconvict-count').value = appState.exconvictCount || 0;
+      document.getElementById('chronic-count').value = appState.chronicCount || 0;
+      calculateTotalPersonnel();
+
+      document.getElementById('normal-student-count').value = appState.normalStudentCount || 0;
+      document.getElementById('disabled-student-count').value = appState.disabledStudentCount || 0;
+      document.getElementById('inclusion-student-count').value = appState.inclusionStudentCount || 0;
+      document.getElementById('chronic-student-count').value = appState.chronicStudentCount || 0;
+      calculateTotalStudents();
+      
+      saveTempAudit();
+      showPage('personnel');
+    });
+
+    document.getElementById('back-to-home').addEventListener('click', () => {
+      appState.managerCount = parseInt(document.getElementById('manager-count').value) || 0;
+      appState.teacherCount = parseInt(document.getElementById('teacher-count').value) || 0;
+      appState.officerCount = parseInt(document.getElementById('officer-count').value) || 0;
+      appState.servantCount = parseInt(document.getElementById('servant-count').value) || 0;
+      appState.workerCount = parseInt(document.getElementById('worker-count').value) || 0;
+      appState.typCount = parseInt(document.getElementById('typ-count').value) || 0;
+      appState.paidTeacherCount = parseInt(document.getElementById('paid-teacher-count').value) || 0;
+      appState.contractCount = parseInt(document.getElementById('contract-count').value) || 0;
+      appState.masterInstructorCount = parseInt(document.getElementById('master-instructor-count').value) || 0;
+      appState.disabledCount = parseInt(document.getElementById('disabled-count').value) || 0;
+      appState.exconvictCount = parseInt(document.getElementById('exconvict-count').value) || 0;
+      appState.chronicCount = parseInt(document.getElementById('chronic-count').value) || 0;
+      appState.totalPersonnel = parseInt(document.getElementById('total-personnel').value) || 0;
+      
+      appState.normalStudentCount = parseInt(document.getElementById('normal-student-count').value) || 0;
+      appState.disabledStudentCount = parseInt(document.getElementById('disabled-student-count').value) || 0;
+      appState.inclusionStudentCount = parseInt(document.getElementById('inclusion-student-count').value) || 0;
+      appState.chronicStudentCount = parseInt(document.getElementById('chronic-student-count').value) || 0;
+      appState.totalStudents = parseInt(document.getElementById('total-students').value) || 0;
+      
+      saveTempAudit();
+      showPage('home');
+      switchTab('new');
+    });
+
+    document.getElementById('continue-to-audit').addEventListener('click', () => {
+      appState.managerCount = parseInt(document.getElementById('manager-count').value) || 0;
+      appState.teacherCount = parseInt(document.getElementById('teacher-count').value) || 0;
+      appState.officerCount = parseInt(document.getElementById('officer-count').value) || 0;
+      appState.servantCount = parseInt(document.getElementById('servant-count').value) || 0;
+      appState.workerCount = parseInt(document.getElementById('worker-count').value) || 0;
+      appState.typCount = parseInt(document.getElementById('typ-count').value) || 0;
+      appState.paidTeacherCount = parseInt(document.getElementById('paid-teacher-count').value) || 0;
+      appState.contractCount = parseInt(document.getElementById('contract-count').value) || 0;
+      appState.masterInstructorCount = parseInt(document.getElementById('master-instructor-count').value) || 0;
+      appState.disabledCount = parseInt(document.getElementById('disabled-count').value) || 0;
+      appState.exconvictCount = parseInt(document.getElementById('exconvict-count').value) || 0;
+      appState.chronicCount = parseInt(document.getElementById('chronic-count').value) || 0;
+      appState.totalPersonnel = parseInt(document.getElementById('total-personnel').value) || 0;
+      
+      appState.normalStudentCount = parseInt(document.getElementById('normal-student-count').value) || 0;
+      appState.disabledStudentCount = parseInt(document.getElementById('disabled-student-count').value) || 0;
+      appState.inclusionStudentCount = parseInt(document.getElementById('inclusion-student-count').value) || 0;
+      appState.chronicStudentCount = parseInt(document.getElementById('chronic-student-count').value) || 0;
+      appState.totalStudents = parseInt(document.getElementById('total-students').value) || 0;
+      
+      const hasTemp = localStorage.getItem('isg_temp_audit');
+      if (!hasTemp || Object.keys(appState.answers).length === 0) {
+        appState.currentCategoryIndex = 0;
+        appState.editingAuditId = null;
+        appState.answers = {};
+        appState.photos = {};
+        
+        if (appState.previousDeficiencies.length > 0) {
+          appState.previousDeficiencies.forEach(def => {
+            appState.answers[def.code] = {
+              value: 'no',
+              dof: def.dof,
+              note: ''
+            };
+          });
+        }
+      }
+      
+      saveTempAudit();
+      showPage('audit');
+      renderCurrentCategory();
+    });
+
+    document.getElementById('prev-category').addEventListener('click', goToPrevCategory);
+    document.getElementById('next-category').addEventListener('click', goToNextCategory);
+
+    document.getElementById('back-to-audit').addEventListener('click', () => {
+      showPage('audit');
+    });
+
+    document.getElementById('save-audit').addEventListener('click', saveAudit);
+    document.getElementById('download-pdf').addEventListener('click', downloadPDF);
+
+    document.getElementById('camera-input').addEventListener('change', (e) => handlePhotoSelect(e.target.files[0]));
+    document.getElementById('gallery-input').addEventListener('change', (e) => handlePhotoSelect(e.target.files[0]));
+    document.getElementById('cancel-photo').addEventListener('click', closePhotoModal);
+    document.getElementById('save-photo').addEventListener('click', savePhotoFunc);
+
+    document.getElementById('add-other-dof').addEventListener('click', addOtherDof);
+    document.getElementById('other-dof-text').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        addOtherDof();
+      }
+    });
+
+    // Geçici denetimi kaydet
+    function saveTempAudit() {
+      const tempAudit = {
+        schoolCode: appState.schoolCode,
+        schoolName: appState.schoolName,
+        schoolDistrict: appState.schoolDistrict,
+        auditDate: appState.auditDate,
+        schoolAddress: appState.schoolAddress,
+        schoolScope: appState.schoolScope,
+        schoolHazardClass: appState.schoolHazardClass,
+        schoolPhone: appState.schoolPhone,
+        schoolEmail: appState.schoolEmail,
+        managerCount: appState.managerCount,
+        teacherCount: appState.teacherCount,
+        officerCount: appState.officerCount,
+        servantCount: appState.servantCount,
+        workerCount: appState.workerCount,
+        typCount: appState.typCount,
+        paidTeacherCount: appState.paidTeacherCount,
+        contractCount: appState.contractCount,
+        masterInstructorCount: appState.masterInstructorCount,
+        disabledCount: appState.disabledCount,
+        exconvictCount: appState.exconvictCount,
+        chronicCount: appState.chronicCount,
+        totalPersonnel: appState.totalPersonnel,
+        normalStudentCount: appState.normalStudentCount,
+        disabledStudentCount: appState.disabledStudentCount,
+        inclusionStudentCount: appState.inclusionStudentCount,
+        chronicStudentCount: appState.chronicStudentCount,
+        totalStudents: appState.totalStudents,
+        currentCategoryIndex: appState.currentCategoryIndex,
+        answers: appState.answers,
+        photos: appState.photos,
+        previousDeficiencies: appState.previousDeficiencies,
+        otherDeficiencies: appState.otherDeficiencies
+      };
+      localStorage.setItem('isg_temp_audit', JSON.stringify(tempAudit));
+    }
+
+    // Geçici denetimi yükle
+    function loadTempAudit() {
+      try {
+        const saved = localStorage.getItem('isg_temp_audit');
+        if (saved) {
+          const temp = JSON.parse(saved);
+          appState.schoolCode = temp.schoolCode || '';
+          appState.schoolName = temp.schoolName || '';
+          appState.schoolDistrict = temp.schoolDistrict || '';
+          appState.auditDate = temp.auditDate || '';
+          appState.schoolAddress = temp.schoolAddress || '';
+          appState.schoolScope = temp.schoolScope || '';
+          appState.schoolHazardClass = temp.schoolHazardClass || '';
+          appState.schoolPhone = temp.schoolPhone || '';
+          appState.schoolEmail = temp.schoolEmail || '';
+          appState.managerCount = temp.managerCount || 0;
+          appState.teacherCount = temp.teacherCount || 0;
+          appState.officerCount = temp.officerCount || 0;
+          appState.servantCount = temp.servantCount || 0;
+          appState.workerCount = temp.workerCount || 0;
+          appState.typCount = temp.typCount || 0;
+          appState.paidTeacherCount = temp.paidTeacherCount || 0;
+          appState.contractCount = temp.contractCount || 0;
+          appState.masterInstructorCount = temp.masterInstructorCount || 0;
+          appState.disabledCount = temp.disabledCount || 0;
+          appState.exconvictCount = temp.exconvictCount || 0;
+          appState.chronicCount = temp.chronicCount || 0;
+          appState.totalPersonnel = temp.totalPersonnel || 0;
+          appState.normalStudentCount = temp.normalStudentCount || 0;
+          appState.disabledStudentCount = temp.disabledStudentCount || 0;
+          appState.inclusionStudentCount = temp.inclusionStudentCount || 0;
+          appState.chronicStudentCount = temp.chronicStudentCount || 0;
+          appState.totalStudents = temp.totalStudents || 0;
+          appState.currentCategoryIndex = temp.currentCategoryIndex || 0;
+          appState.answers = temp.answers || {};
+          appState.photos = temp.photos || {};
+          appState.previousDeficiencies = temp.previousDeficiencies || [];
+          appState.otherDeficiencies = temp.otherDeficiencies || [];
+        }
+      } catch (e) {
+        console.error('Gecici denetim yuklenemedi:', e);
+      }
+    }
+
+    // Geçici denetimi temizle
+    function clearTempAudit() {
+      localStorage.removeItem('isg_temp_audit');
+    }
+
+    // Sayfa yüklendiğinde
+    document.addEventListener('DOMContentLoaded', () => {
+      loadAuditsFromStorage();
+      loadTempAudit();
+      
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('audit-date').value = today;
+    });
+
+
+function saveToGoogleSheet() {
+    // 1. Form bilgilerini al
+    const schoolName = document.querySelector('input[placeholder*="Okul"]').value;
+    const auditDate = document.getElementById('audit-date').value;
+    const inspectorName = document.querySelector('input[placeholder*="Denetçi"]').value;
+    const location = document.querySelector('input[placeholder*="Bölüm"]').value;
+
+    // 2. Tüm soruları ve seçilen yanıtları topla
+    const questionsData = [];
+    const questionCards = document.querySelectorAll('.question-card');
+    
+    questionCards.forEach((card) => {
+        const questionText = card.querySelector('p').innerText;
+        const selectedOption = card.querySelector('input[type="radio"]:checked');
+        const status = selectedOption ? selectedOption.value : "Belirtilmedi";
+        
+        questionsData.push({
+            question: questionText,
+            status: status
+        });
+    });
+
+    const finalData = {
+        schoolName: schoolName,
+        auditDate: auditDate,
+        inspectorName: inspectorName,
+        location: location,
+        overallStatus: auditDeficiencies.length === 0 ? "UYGUN" : "EKSİKLİK VAR",
+        questions: questionsData
+    };
+
+    // Butonu işlem sırasında kilitle
+    const btn = event.target;
+    const originalText = btn.innerText;
+    btn.innerText = "Kaydediliyor...";
+    btn.disabled = true;
+
+
+function submitAudit() {
+  // Senin özel Web App URL'n
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxbS32AOKNTq4dAc1cDm0vlH8NYi9-NbHNkfydZuq4U4AsO3N5_TIJasyAHSbFwXa8L/exec";
+
+  // Verileri topla (prepareData senin kodunda veriyi hazırlayan fonksiyondur)
+  const finalData = prepareData();
+  
+  // Buton kontrolü ve görsel efekt
+  const btn = document.getElementById('submitBtn');
+  const originalText = btn.innerText;
+  btn.innerText = "⏳ Kaydediliyor...";
+  btn.disabled = true;
+
+  // GitHub üzerinden Google'a veri gönderimi
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors", // Google Apps Script güvenlik duvarını aşmak için şart
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(finalData)
+  })
+  .then(() => {
+    // İşlem başarılı olduğunda yapılacaklar
+    alert("✅ Denetim başarıyla Google E-Tabloya kaydedildi!");
+    btn.innerText = originalText;
+    btn.disabled = false;
+    
+    // Formu temizle ve sayfayı yenile
+    if (typeof clearTempAudit === 'function') clearTempAudit();
+    location.reload();
+  })
+  .catch(err => {
+    // Hata durumunda yapılacaklar
+    console.error("Gönderim Hatası:", err);
+    alert("❌ Hata oluştu: " + err);
+    btn.innerText = originalText;
+    btn.disabled = false;
+  });
+}
+
+
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c79b84c11c6d5ff',t:'MTc3MDAzNTYzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
