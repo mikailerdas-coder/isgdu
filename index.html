@@ -2526,59 +2526,59 @@ async function downloadPDF() {
     });
 
 
-function saveToGoogleSheet() {
-    // 1. Form bilgilerini al
-    const schoolName = document.querySelector('input[placeholder*="Okul"]').value;
-    const auditDate = document.getElementById('audit-date').value;
-    const inspectorName = document.querySelector('input[placeholder*="Denetçi"]').value;
-    const location = document.querySelector('input[placeholder*="Bölüm"]').value;
+async function submitAudit() {
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxbS32AOKNTq4dAc1cDm0vlH8NYi9-NbHNkfydZuq4U4AsO3N5_TIJasyAHSbFwXa8L/exec";
+    const btn = document.getElementById('save-audit');
+    const originalText = btn.innerText;
 
-    // 2. Tüm soruları ve seçilen yanıtları topla
-    const questionsData = [];
-    const questionCards = document.querySelectorAll('.question-card');
-    
-    questionCards.forEach((card) => {
-        const questionText = card.querySelector('p').innerText;
-        const selectedOption = card.querySelector('input[type="radio"]:checked');
-        const status = selectedOption ? selectedOption.value : "Belirtilmedi";
-        
-        questionsData.push({
-            question: questionText,
-            status: status
+    // 1. Verileri senin orijinal yapından topla
+    const finalData = {
+        schoolDistrict: document.getElementById('school-district')?.value || "",
+        schoolName: document.getElementById('school-name')?.value || "",
+        schoolCode: document.getElementById('school-code')?.value || "",
+        auditDate: document.getElementById('audit-date')?.value || "",
+        inspectorName: document.getElementById('inspector-name')?.value || "Denetçi",
+        questions: []
+    };
+
+    // Tüm radyo butonlarındaki cevapları topla
+    document.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
+        finalData.questions.push({
+            id: radio.name,
+            status: radio.value
         });
     });
 
-    const finalData = {
-        schoolName: schoolName,
-        auditDate: auditDate,
-        inspectorName: inspectorName,
-        location: location,
-        overallStatus: auditDeficiencies.length === 0 ? "UYGUN" : "EKSİKLİK VAR",
-        questions: questionsData
-    };
+    if(!finalData.schoolName) {
+        alert("Lütfen okul adını doldurun!");
+        return;
+    }
 
-    // Butonu işlem sırasında kilitle
-    const btn = event.target;
-    const originalText = btn.innerText;
-    btn.innerText = "Kaydediliyor...";
+    btn.innerText = "⏳ Kaydediliyor...";
     btn.disabled = true;
 
-    // 3. Google Script'e gönder
-    google.script.run
-      .withSuccessHandler(function(response) {
-          alert(response);
-          btn.innerText = originalText;
-          btn.disabled = false;
-          if(response.includes("Başarıyla")) {
-              clearTempAudit();
-              location.reload(); 
-          }
-      })
-      .withFailureHandler(function(err) {
-          alert("Hata: " + err);
-          btn.disabled = false;
-      })
-      .saveDataToSheet(finalData);
+    // 2. Google Script'e GÖNDER (GitHub uyumlu yöntem)
+    try {
+        await fetch(SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(finalData)
+        });
+        
+        alert("✅ Başarıyla kaydedildi!");
+        btn.innerText = originalText;
+        btn.disabled = false;
+        
+        // Formu temizle (senin orijinal fonksiyonun varsa çalışır)
+        if(typeof clearTempAudit === 'function') clearTempAudit();
+        location.reload(); 
+        
+    } catch (err) {
+        alert("Hata oluştu: " + err);
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
 }
 
   </script>
