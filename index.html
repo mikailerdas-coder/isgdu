@@ -2527,19 +2527,18 @@ async function downloadPDF() {
 
 
 async function submitAudit() {
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby33iFUbBXgiZ_9VXHihPBewHrsp4Su-aJiQmcKghPsMqHF17UurmSb_uUdADQR5mgy/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbysE9xtt1y_BelfH0yl_GI3-XuZ8HmS7Y9JfPTe0nVfPZIAuv9ZeIMMF_C0PJ52qvZO/exec";
     const btn = document.getElementById('save-audit');
     const originalText = btn.innerText;
 
     // 1. Verileri senin orijinal yapından topla
-    const finalData = {
-        schoolDistrict: document.getElementById('school-district')?.value || "",
-        schoolName: document.getElementById('school-name')?.value || "",
-        schoolCode: document.getElementById('school-code')?.value || "",
-        auditDate: document.getElementById('audit-date')?.value || "",
-        inspectorName: document.getElementById('inspector-name')?.value || "Denetçi",
-        questions: []
-    };
+   const finalData = {
+    // ... diğer bilgiler ...
+    questions: Object.keys(answers).map(key => ({
+        id: key,
+        status: answers[key]
+    }))
+};
 
     // Tüm radyo butonlarındaki cevapları topla
     document.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
