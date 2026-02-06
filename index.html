@@ -2,37 +2,37 @@
 <html lang="tr" class="h-full">
  <head>
 
-<meta charset="UTF-8">
-  <meta name="viewport" content="width=device-ui, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>İSG Denetim Uygulaması</title>
 
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#2563eb">
+  
   <link rel="apple-touch-icon" href="[https://cdn-icons-png.flaticon.com/512/3135/3135715.png](https://cdn-icons-png.flaticon.com/512/3135/3135715.png)">
   
   <link id="manifest-placeholder" rel="manifest">
 
   <script>
-    // Dinamik Manifest Oluşturucu (Android ve Chrome için)
+    // Manifest dosyasını hatasız oluşturur
     (function() {
       const manifest = {
         "name": "İSG Denetim Sistemi",
         "short_name": "İSG Form",
-        "start_url": ".", 
+        "start_url": ".",
         "display": "standalone",
         "background_color": "#ffffff",
         "theme_color": "#2563eb",
         "icons": [{
           "src": "[https://cdn-icons-png.flaticon.com/512/3135/3135715.png](https://cdn-icons-png.flaticon.com/512/3135/3135715.png)",
           "sizes": "512x512",
-          "type": "image/png",
-          "purpose": "any maskable"
+          "type": "image/png"
         }]
       };
-      const stringManifest = JSON.stringify(manifest);
-      const blob = new Blob([stringManifest], {type: 'application/json'});
+      const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
       const manifestURL = URL.createObjectURL(blob);
       document.querySelector('#manifest-placeholder').setAttribute('href', manifestURL);
     })();
@@ -45,6 +45,15 @@
   <link rel="preconnect" href="[https://fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
   <link href="[https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap)" rel="stylesheet">
 
+  <style>
+    body {
+      box-sizing: border-box;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* Diğer Stil Kodların Buradan Aşağı Devam Edebilir */
+  </style>
+</head>
 
  </head>
  <body class="h-full bg-gray-50"><!-- Ana Sayfa -->
