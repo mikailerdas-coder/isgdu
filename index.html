@@ -1,46 +1,10 @@
 <!doctype html>
 <html lang="tr" class="h-full">
  <head>
-
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="mobile-web-app-capable" content="yes">
-  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1162/1162456.png">
-
-  <script>
-
-    
-    // Manifest dosyasını dinamik olarak oluşturur (Android yükleme uyarısı için)
-    (function() {
-      const manifest = {
-        "name": "İSG Denetim Uygulaması",
-        "short_name": "İSG Form",
-        "start_url": window.location.href,
-        "display": "standalone",
-        "background_color": "#ffffff",
-        "theme_color": "#16a34a",
-        "icons": [{
-          "src": "https://cdn-icons-png.flaticon.com/512/1162/1162456.png",
-          "sizes": "512x512",
-          "type": "image/png"
-        }]
-      };
-      const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-      const link = document.createElement('link');
-      link.rel = 'manifest';
-      link.href = URL.createObjectURL(blob);
-      document.head.appendChild(link);
-    })();
-  </script>
-  
-
-
-
-
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#2563eb"> <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+<meta name="theme-color" content="#2563eb"> <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"> ```
 
 
   
@@ -213,7 +177,7 @@
     <div class="max-w-4xl mx-auto p-4 pb-0"><!-- Başlık -->
      <div class="text-center mb-4 pt-4">
       <div class="bg-white border border-blue-300 rounded-3xl shadow-sm p-6">
-       <h2 class="text-3xl font-bold text-blue-900 mb-2 tracking-tight">İŞ SAĞLIĞI VE GÜVENLİĞİ</h2>
+       <h1 class="text-3xl font-bold text-blue-900 mb-2 tracking-tight">İŞ SAĞLIĞI VE GÜVENLİĞİ</h1>
        <p class="text-blue-900 font-medium">Ortam Gözetimi, Rehberlik ve Denetim Uygulaması</p>
       </div>
      </div><!-- Sekmeler -->
@@ -2585,51 +2549,24 @@ function saveToGoogleSheet() {
     btn.innerText = "Kaydediliyor...";
     btn.disabled = true;
 
- <script>
-function submitAudit() {
-  // Senin özel Web App URL'n
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxbS32AOKNTq4dAc1cDm0vlH8NYi9-NbHNkfydZuq4U4AsO3N5_TIJasyAHSbFwXa8L/exec";
-
-  // Verileri topla (prepareData senin kodunda veriyi hazırlayan fonksiyondur)
-  const finalData = prepareData();
-  
-  // Buton kontrolü ve görsel efekt
-  const btn = document.getElementById('submitBtn');
-  const originalText = btn.innerText;
-  btn.innerText = "⏳ Kaydediliyor...";
-  btn.disabled = true;
-
-  // GitHub üzerinden Google'a veri gönderimi
-  fetch(SCRIPT_URL, {
-    method: "POST",
-    mode: "no-cors", // Google Apps Script güvenlik duvarını aşmak için şart
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(finalData)
-  })
-  .then(() => {
-    // İşlem başarılı olduğunda yapılacaklar
-    alert("✅ Denetim başarıyla Google E-Tabloya kaydedildi!");
-    btn.innerText = originalText;
-    btn.disabled = false;
-    
-    // Formu temizle ve sayfayı yenile
-    if (typeof clearTempAudit === 'function') clearTempAudit();
-    location.reload();
-  })
-  .catch(err => {
-    // Hata durumunda yapılacaklar
-    console.error("Gönderim Hatası:", err);
-    alert("❌ Hata oluştu: " + err);
-    btn.innerText = originalText;
-    btn.disabled = false;
-  });
+    // 3. Google Script'e gönder
+    google.script.run
+      .withSuccessHandler(function(response) {
+          alert(response);
+          btn.innerText = originalText;
+          btn.disabled = false;
+          if(response.includes("Başarıyla")) {
+              clearTempAudit();
+              location.reload(); 
+          }
+      })
+      .withFailureHandler(function(err) {
+          alert("Hata: " + err);
+          btn.disabled = false;
+      })
+      .saveDataToSheet(finalData);
 }
 
-
   </script>
-
-
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c79b84c11c6d5ff',t:'MTc3MDAzNTYzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
