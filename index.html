@@ -1899,11 +1899,9 @@ async function saveAudit() {
       return;
     }
 
-    // 3. Google Apps Script'e Gönder
-    if (typeof google !== 'undefined' && google.script && google.script.run) {
-      console.log("Google Script bağlantısı aktif, gönderiliyor...");
+
       
-      google.script.run
+     
         .withSuccessHandler(function(response) {
           console.log("Sunucudan gelen yanıt:", response);
           const res = JSON.parse(response);
@@ -1921,12 +1919,7 @@ async function saveAudit() {
             saveBtn.textContent = '❌ Hata Oluştu';
           }
         })
-        .withFailureHandler(function(err) {
-          console.error("Google Script Hatası:", err);
-          alert("Bağlantı Hatası: " + err);
-          saveBtn.disabled = false;
-          saveBtn.textContent = '❌ Tekrar Dene';
-        })
+        
         .processData(JSON.stringify(veriler));
     } else {
       console.error("Google Script objesi bulunamadı!");
@@ -2549,24 +2542,76 @@ function saveToGoogleSheet() {
     btn.innerText = "Kaydediliyor...";
     btn.disabled = true;
 
-    // 3. Google Script'e gönder
-    google.script.run
-      .withSuccessHandler(function(response) {
-          alert(response);
-          btn.innerText = originalText;
-          btn.disabled = false;
-          if(response.includes("Başarıyla")) {
-              clearTempAudit();
-              location.reload(); 
-          }
+   
       })
       .withFailureHandler(function(err) {
           alert("Hata: " + err);
           btn.disabled = false;
       })
-      .saveDataToSheet(finalData);
+
 }
 
+
+<script>
+// 1. FORMDAKİ VERİLERİ PAKETLEYEN FONKSİYON
+function prepareData() {
+    return {
+        schoolDistrict: document.getElementById('school-district')?.value || "",
+        schoolName: document.getElementById('school-name')?.value || "",
+        schoolCode: document.getElementById('school-code')?.value || "",
+        auditDate: document.getElementById('audit-date')?.value || "",
+        inspectorName: document.getElementById('inspector-name')?.value || "Denetçi",
+        questions: Array.from(document.querySelectorAll('input[type="radio"]:checked')).map(r => ({
+            id: r.name,
+            status: r.value
+        }))
+    };
+}
+
+// 2. VERİYİ GOOGLE'A GÖNDEREN ANA FONKSİYON
+async function gonderVeKaydet() {
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxbS32AOKNTq4dAc1cDm0vlH8NYi9-NbHNkfydZuq4U4AsO3N5_TIJasyAHSbFwXa8L/exec";
+    
+    // Butonunu bul (ID'si dosmanda 'save-audit' olarak görünüyor)
+    const btn = document.getElementById('save-audit');
+    if (!btn) return alert("Kaydet butonu bulunamadı!");
+
+    const originalText = btn.innerText;
+    btn.innerText = "⏳ Gönderiliyor...";
+    btn.disabled = true;
+
+    try {
+        const data = prepareData();
+        await fetch(SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+        
+        alert("✅ Başarılı! Veriler E-Tabloya iletildi.");
+        location.reload(); 
+    } catch (err) {
+        alert("❌ Hata: " + err.message);
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
+}
+
+// 3. BUTONA TIKLAMA ÖZELLİĞİ EKLE
+document.addEventListener('DOMContentLoaded', function() {
+    const saveBtn = document.getElementById('save-audit');
+    if (saveBtn) {
+        saveBtn.onclick = gonderVeKaydet;
+    }
+});
+</script>
+
+
   </script>
+
+
+
+
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c79b84c11c6d5ff',t:'MTc3MDAzNTYzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
