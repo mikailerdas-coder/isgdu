@@ -1166,7 +1166,7 @@ const auditQuestions = {
       }
       
       appState.allAudits = appState.allAudits.filter(a => a.id !== auditId);
-      saveAuditsToStorage();
+      sToStorage();
       renderAuditHistory();
       renderStatistics();
       showToast('Denetim silindi');
@@ -1187,7 +1187,7 @@ const auditQuestions = {
       }
       
       appState.allAudits = appState.allAudits.filter(a => a.id !== auditId);
-      saveAuditsToStorage();
+      sToStorage();
       renderAuditHistory();
       closeDetailModal();
       showToast('Denetim silindi');
@@ -1870,209 +1870,108 @@ const auditQuestions = {
     // Denetimi Kaydet
 
 async function saveAudit() {
-  console.log("Kayıt işlemi başlatıldı...");
   const saveBtn = document.getElementById('save-audit');
   saveBtn.disabled = true;
-  saveBtn.textContent = '⏳ Google\'a Gönderiliyor...';
+  saveBtn.textContent = '⏳ İşleniyor...';
 
   try {
-    // 1. Veri Paketini Hazırla
-    const veriler = {
-      kurum_adi: document.getElementById('school-name').value || "Belirtilmedi",
-      denetimci: document.getElementById('inspector-name').value || "İSG Uzmanı",
-      tarih: document.getElementById('audit-date').value || new Date().toLocaleDateString('tr-TR'),
-      issues: []
-    };
-
-    console.log("Okul Adı:", veriler.kurum_adi);
-
-    // 2. appState.answers içindeki verileri topla
-    // Senin kodunda cevaplar appState.answers[code].value içinde (yes/no)
-    Object.keys(auditQuestions).forEach(catKey => {
-      const category = auditQuestions[catKey];
-      category.questions.forEach(q => {
-        const answerData = appState.answers[q.code];
-        if (answerData) {
-          veriler.issues.push({
-            category: category.title,
-            code: q.code,
-            text: q.text,
-            answer: answerData.value === 'yes' ? 'Evet' : 'Hayır',
-            dof: answerData.value === 'no' ? (answerData.observation || q.dof) : '-'
-          });
-        }
-      });
+    // 1. Fotoğrafları Filtrele (Sadece "Hayır" denilenlerin fotoğraflarını al)
+    const filteredPhotos = {};
+    Object.keys(appState.photos).forEach(code => {
+      if (appState.answers[code] && appState.answers[code].value === 'no') {
+        filteredPhotos[code] = appState.photos[code];
+      }
     });
 
-    console.log("Paketlenen soru sayısı:", veriler.issues.length);
+    // 2. Veri Paketini Oluştur (Mevcut yapınız)
+    const auditData = {
+      id: appState.editingAuditId || generateId(),
+      school_name: appState.schoolName,
+      school_code: appState.schoolCode,
+      school_district: appState.schoolDistrict,
+      audit_date: appState.auditDate,
+      school_address: appState.schoolAddress,
+      school_scope: appState.schoolScope,
+      school_hazard_class: appState.schoolHazardClass,
+      school_phone: appState.schoolPhone,
+      school_email: appState.schoolEmail,
+      manager_count: appState.managerCount,
+      teacher_count: appState.teacherCount,
+      officer_count: appState.officerCount,
+      servant_count: appState.servantCount,
+      worker_count: appState.workerCount,
+      typ_count: appState.typCount,
+      paid_teacher_count: appState.paidTeacherCount,
+      contract_count: appState.contractCount,
+      master_instructor_count: appState.masterInstructorCount,
+      disabled_count: appState.disabledCount,
+      exconvict_count: appState.exconvictCount,
+      chronic_count: appState.chronicCount,
+      total_personnel: appState.totalPersonnel,
+      normal_student_count: appState.normalStudentCount,
+      disabled_student_count: appState.disabledStudentCount,
+      inclusion_student_count: appState.inclusionStudentCount,
+      chronic_student_count: appState.chronicStudentCount,
+      total_students: appState.totalStudents,
+      answers: appState.answers,
+      photos: filteredPhotos,
+      previous_deficiencies: appState.previousDeficiencies,
+      other_deficiencies: appState.otherDeficiencies,
+      status: 'completed',
+      created_at: new Date().toISOString()
+    };
 
-    if (veriler.issues.length === 0) {
-      alert("Lütfen en az bir soruyu cevaplayın!");
-      saveBtn.disabled = false;
-      saveBtn.textContent = '💾 Denetimi Kaydet';
-      return;
-    }
-
-    // 3. Google Apps Script'e Gönder
-    if (typeof google !== 'undefined' && google.script && google.script.run) {
-      console.log("Google Script bağlantısı aktif, gönderiliyor...");
-      
-      google.script.run
-        .withSuccessHandler(function(response) {
-          console.log("Sunucudan gelen yanıt:", response);
-          const res = JSON.parse(response);
-          
-          if (res.status === "ok") {
-            saveBtn.disabled = false;
-            saveBtn.textContent = '✅ Kayıt Başarılı';
-            saveBtn.classList.replace('bg-blue-600', 'bg-green-600');
-            alert('Başarılı! Veriler E-Tabloya işlendi.');
-            if (res.url) window.open(res.url, '_blank');
-            clearTempAudit();
-          } else {
-            alert("Sunucu Hatası: " + res.message);
-            saveBtn.disabled = false;
-            saveBtn.textContent = '❌ Hata Oluştu';
-          }
-        })
-        .withFailureHandler(function(err) {
-          console.error("Google Script Hatası:", err);
-          alert("Bağlantı Hatası: " + err);
-          saveBtn.disabled = false;
-          saveBtn.textContent = '❌ Tekrar Dene';
-        })
-        .processData(JSON.stringify(veriler));
+    // 3. Yerel Kayıt İşlemi (Tarayıcı Hafızası)
+    if (appState.editingAuditId) {
+      const auditIndex = appState.allAudits.findIndex(a => a.id === appState.editingAuditId);
+      if (auditIndex !== -1) appState.allAudits[auditIndex] = auditData;
     } else {
-      console.error("Google Script objesi bulunamadı!");
-      alert("Hata: Uygulama Google sunucularına bağlanamıyor. Lütfen 'Dağıtılmış URL' üzerinden açtığınızdan emin olun.");
-      saveBtn.disabled = false;
+      appState.allAudits.push(auditData);
     }
+    saveAuditsToStorage();
+    renderAuditHistory();
+
+    // 4. GOOGLE SHEETS'E GÖNDERİM
+    // Not: Fotoğraflar çok büyükse Sheets'e göndermek hata verebilir, bu yüzden answers ve genel bilgileri öncelikli gönderiyoruz.
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbysE9xtt1y_BelfH0yl_GI3-XuZ8HmS7Y9JfPTe0nVfPZIAuv9ZeIMMF_C0PJ52qvZO/exec";
+    
+    saveBtn.textContent = '⏳ Google Sheets\'e Aktarılıyor...';
+    
+    // fetch ile gönderim (no-cors modu GitHub/PWA uyumludur)
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      cache: 'no-cache',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(auditData)
+    }).then(() => {
+      console.log("Veri başarıyla buluta fırlatıldı.");
+    }).catch(e => console.error("Bulut kayıt hatası:", e));
+
+    // 5. Başarı Bildirimi ve Ekran Temizliği
+    showToast('Denetim kaydedildi ve Google Sheets\'e gönderildi ✓');
+    saveBtn.disabled = false;
+    saveBtn.textContent = '💾 Denetimi Kaydet';
+    
+    appState.editingAuditId = null;
+    clearTempAudit();
+    
+    setTimeout(() => {
+      clearAllForm();
+      showPage('home');
+      switchTab('data');
+    }, 1500);
 
   } catch (error) {
-    console.error('Kritik hata:', error);
+    console.error('Kritik Hata:', error);
+    showToast('Hata: ' + error.message);
     saveBtn.disabled = false;
-    saveBtn.textContent = '❌ Hata';
+    saveBtn.textContent = '💾 Denetimi Kaydet';
   }
 }
 
 
-    function saveAudit() {
-      const saveBtn = document.getElementById('save-audit');
-      saveBtn.disabled = true;
-      saveBtn.textContent = '⏳ Kaydediliyor...';
-
-      try {
-        const filteredPhotos = {};
-        Object.keys(appState.photos).forEach(code => {
-          if (appState.answers[code] && appState.answers[code].value === 'no') {
-            filteredPhotos[code] = appState.photos[code];
-          }
-        });
-
-        if (appState.editingAuditId) {
-          const auditIndex = appState.allAudits.findIndex(a => a.id === appState.editingAuditId);
-          if (auditIndex !== -1) {
-            appState.allAudits[auditIndex] = {
-              ...appState.allAudits[auditIndex],
-              school_name: appState.schoolName,
-              school_code: appState.schoolCode,
-              school_district: appState.schoolDistrict,
-              audit_date: appState.auditDate,
-              school_address: appState.schoolAddress,
-              school_scope: appState.schoolScope,
-              school_hazard_class: appState.schoolHazardClass,
-              school_phone: appState.schoolPhone,
-              school_email: appState.schoolEmail,
-              manager_count: appState.managerCount,
-              teacher_count: appState.teacherCount,
-              officer_count: appState.officerCount,
-              servant_count: appState.servantCount,
-              worker_count: appState.workerCount,
-              typ_count: appState.typCount,
-              paid_teacher_count: appState.paidTeacherCount,
-              contract_count: appState.contractCount,
-              master_instructor_count: appState.masterInstructorCount,
-              disabled_count: appState.disabledCount,
-              exconvict_count: appState.exconvictCount,
-              chronic_count: appState.chronicCount,
-              total_personnel: appState.totalPersonnel,
-              normal_student_count: appState.normalStudentCount,
-              disabled_student_count: appState.disabledStudentCount,
-              inclusion_student_count: appState.inclusionStudentCount,
-              chronic_student_count: appState.chronicStudentCount,
-              total_students: appState.totalStudents,
-              answers: appState.answers,
-              photos: filteredPhotos,
-              previous_deficiencies: appState.previousDeficiencies,
-              other_deficiencies: appState.otherDeficiencies,
-              status: 'completed'
-            };
-          }
-        } else {
-          const newAudit = {
-            id: generateId(),
-            school_name: appState.schoolName,
-            school_code: appState.schoolCode,
-            school_district: appState.schoolDistrict,
-            audit_date: appState.auditDate,
-            school_address: appState.schoolAddress,
-            school_scope: appState.schoolScope,
-            school_hazard_class: appState.schoolHazardClass,
-            school_phone: appState.schoolPhone,
-            school_email: appState.schoolEmail,
-            manager_count: appState.managerCount,
-            teacher_count: appState.teacherCount,
-            officer_count: appState.officerCount,
-            servant_count: appState.servantCount,
-            worker_count: appState.workerCount,
-            typ_count: appState.typCount,
-            paid_teacher_count: appState.paidTeacherCount,
-            contract_count: appState.contractCount,
-            master_instructor_count: appState.masterInstructorCount,
-            disabled_count: appState.disabledCount,
-            exconvict_count: appState.exconvictCount,
-            chronic_count: appState.chronicCount,
-            total_personnel: appState.totalPersonnel,
-            normal_student_count: appState.normalStudentCount,
-            disabled_student_count: appState.disabledStudentCount,
-            inclusion_student_count: appState.inclusionStudentCount,
-            chronic_student_count: appState.chronicStudentCount,
-            total_students: appState.totalStudents,
-            answers: appState.answers,
-            photos: filteredPhotos,
-            previous_deficiencies: appState.previousDeficiencies,
-            other_deficiencies: appState.otherDeficiencies,
-            status: 'completed',
-            created_at: new Date().toISOString()
-          };
-          appState.allAudits.push(newAudit);
-        }
-
-        saveAuditsToStorage();
-        renderAuditHistory();
-
-        saveBtn.disabled = false;
-        saveBtn.textContent = '💾 Denetimi Kaydet';
-
-        showToast('Denetim başarıyla kaydedildi ✓');
-        appState.editingAuditId = null;
-        clearTempAudit();
-        setTimeout(() => {
-          clearAllForm();
-          showPage('home');
-          switchTab('data');
-        }, 1500);
-      } catch (error) {
-        console.error('Kaydetme hatasi:', error);
-        showToast('Kaydetme hatasi: ' + error.message);
-        saveBtn.disabled = false;
-        saveBtn.textContent = '💾 Denetimi Kaydet';
-      }
-    }
-
     // PDF İndir
-
-
 async function downloadPDF() {
     const downloadBtn = document.getElementById('download-pdf');
     if (!downloadBtn) return;
@@ -2270,14 +2169,6 @@ async function downloadPDF() {
         downloadBtn.textContent = originalText;
     }
 }
-
-
-
-
-
-
-
-
 
     // Event Listeners
     document.getElementById('school-code').addEventListener('input', checkPreviousAudits);
@@ -2583,4 +2474,5 @@ async function submitAudit() {
   </script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c79b84c11c6d5ff',t:'MTc3MDAzNTYzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
