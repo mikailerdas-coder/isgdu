@@ -1872,12 +1872,12 @@ const auditQuestions = {
 
 
 
+// DOSYANIN EN SONUNA BU BLOĞU YAPIŞTIRIN
 async function saveAudit() {
-    // 1. Butonu bul ve görseli değiştir
     const btn = event.currentTarget || document.querySelector('button[onclick="saveAudit()"]');
     const originalText = btn.innerHTML;
     
-    // 2. Form verilerini topla
+    // Verileri topluyoruz
     const auditData = {
         auditDate: new Date().toLocaleString('tr-TR'),
         schoolDistrict: document.getElementById('schoolDistrict')?.value || '',
@@ -1887,11 +1887,11 @@ async function saveAudit() {
         hazardClass: document.getElementById('hazardClass')?.value || '',
         totalPersonnel: document.getElementById('total-staff')?.innerText || '0',
         totalStudents: document.getElementById('total-students')?.innerText || '0',
-        answers: JSON.stringify(auditQuestions) // Tüm sorular ve cevaplar
+        answers: JSON.stringify(auditQuestions) 
     };
 
-    // 3. Google Sheets URL (Kendi URL'ni buraya koy)
-    const GOOGLE_URL = "https://script.google.com/macros/s/AKfycby_bc4q4z2_g_mY5u14wQikRHQMjgP-x4KLrF42nsw28zQst6gAwV6vSusnZg0oCQCxeA/exec";
+    // Google Apps Script URL - Buraya Kendi URL'nizi Yapıştırın
+    const GOOGLE_URL = "BURAYA_URL_GELECEK";
 
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gönderiliyor...';
@@ -1904,22 +1904,21 @@ async function saveAudit() {
             body: JSON.stringify(auditData)
         });
 
-        alert("✅ Veriler başarıyla Google Tabloya gönderildi!");
-        
-        // Yerel hafızaya da kaydet (isteğe bağlı)
-        let localData = JSON.parse(localStorage.getItem('isg_saved_data') || '[]');
-        localData.push(auditData);
-        localStorage.setItem('isg_saved_data', JSON.stringify(localData));
-
-        location.reload(); // Sayfayı yenile
+        alert("✅ Veriler Google Tabloya başarıyla gönderildi!");
+        location.reload(); 
     } catch (err) {
-        alert("Hata: " + err);
+        console.error(err);
+        alert("Hata oluştu, konsolu kontrol edin.");
     } finally {
         btn.disabled = false;
         btn.innerHTML = originalText;
     }
 }
 
+// BU PARANTEZLERİN EKSİKSİZ OLDUĞUNDAN EMİN OLUN
+</script>
+</body>
+</html>
 
 
 
@@ -1929,5 +1928,6 @@ async function saveAudit() {
   </script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c79b84c11c6d5ff',t:'MTc3MDAzNTYzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
 
