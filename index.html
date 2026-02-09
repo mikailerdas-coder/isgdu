@@ -232,56 +232,55 @@
     }
 
     // Google Sheets'e Veri Gönder
-    async function sendToGoogleSheets(audit) {
-      try {
-        const auth2 = gapi.auth2.getAuthInstance();
-        if (!auth2 || !auth2.isSignedIn.get()) {
-          console.log('Google hesabına bağlanılıyor...');
-          await auth2.signIn();
-        }
 
-        const values = [
-          [
-            audit.id,
-            audit.audit_date,
-            audit.school_name,
-            audit.school_code,
-            audit.school_district || '',
-            audit.manager_count || 0,
-            audit.teacher_count || 0,
-            audit.total_personnel || 0,
-            audit.total_students || 0,
-            Object.values(audit.answers || {}).filter(a => a.value === 'yes').length,
-            Object.values(audit.answers || {}).filter(a => a.value === 'no').length,
-            (audit.other_deficiencies || []).length,
-            audit.status,
-            new Date().toLocaleString('tr-TR')
-          ]
-        ];
-
-        await gapi.client.sheets.spreadsheets.values.append({
-          spreadsheetId: GOOGLE_SHEET_CONFIG.SPREADSHEET_ID,
-          range: 'Denetimler!A1',
-          valueInputOption: 'USER_ENTERED',
-          resource: { values }
-        });
-
-        console.log('✓ Google Sheets\'e başarıyla gönderildi');
-        return true;
-      } catch (error) {
-        console.error('Google Sheets gönderme hatası:', error);
-        return false;
-      }
-    }
-
-    // Sayfa yüklenince API'yi başlat
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initializeGoogleAPI);
+async function sendToGoogleSheets(audit) {
+  try {
+    // Google Apps Script Web App URL
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby7C-gYpz68576GtzO02zIrwXNAvwZ8nzu7irEFQIjeMmdvx4U3PdVlmTVSJeYzey0t/exec';
+    // ⬆️ BURAYA KENDI DEPLOYMENT URL'İNİZİ YAPTIŞTIRIN
+    
+    const compliantCount = Object.values(audit.answers || {}).filter(a => a.value === 'yes').length;
+    const deficiencyCount = Object.values(audit.answers || {}).filter(a => a.value === 'no').length;
+    const otherDefCount = (audit.other_deficiencies || []).length;
+    
+    const payload = {
+      id: audit.id,
+      audit_date: audit.audit_date,
+      school_name: audit.school_name,
+      school_code: audit.school_code,
+      school_district: audit.school_district || '',
+      manager_count: audit.manager_count || 0,
+      teacher_count: audit.teacher_count || 0,
+      total_personnel: audit.total_personnel || 0,
+      total_students: audit.total_students || 0,
+      compliant_count: compliantCount,
+      deficiency_count: deficiencyCount,
+      other_dof_count: otherDefCount,
+      status: audit.status,
+      created_at: new Date().toLocaleString('tr-TR')
+    };
+    
+    const response = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      payload: JSON.stringify(payload)
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      console.log('✓ Google Sheets\'e başarıyla gönderildi');
+      return true;
     } else {
-      initializeGoogleAPI();
+      console.error('Google Sheets gönderme hatası:', result.error);
+      return false;
     }
-  </script>
-
+  } catch (error) {
+    console.error('Google Sheets gönderme hatası:', error);
+    console.log('Veri LocalStorage\'da kaydedildi');
+    return false;
+  }
+}
+ 
   <!-- Ana Sayfa -->
   <div id="home-page" class="h-full overflow-auto"><!-- Sabit Başlık ve Sekmeler -->
    <div class="sticky top-0 z-20 bg-gray-50 pb-4">
@@ -2718,4 +2717,5 @@ async function submitAudit() {
   </script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c79b84c11c6d5ff',t:'MTc3MDAzNTYzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
