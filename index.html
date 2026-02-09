@@ -18,12 +18,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- ⭐ GOOGLE SHEETS API SCRIPT'LERİ ⭐ -->
-  <script src="https://apis.google.com/js/api.js"></script>
-  <script src="https://accounts.google.com/gsi/client"></script>
-  
   <script>
-    // Manifest oluşturucu 
+    // Manifest oluşturucu (Bu kısım senin kodunda eksikti)
     (function() {
       const manifest = {
         "name": "İSG Denetim Sistemi",
@@ -189,99 +185,7 @@
   </style>
   <style>@view-transition { navigation: auto; }</style>
  </head>
- <body class="h-full bg-gray-50">
-
-  <!-- ⭐ GOOGLE SHEETS KONFİGÜRASYON VE API BAŞLATMA ⭐ -->
-  <script>
-    // Google Sheets Konfigürasyonu
-    const GOOGLE_SHEET_CONFIG = {
-      CLIENT_ID: 'YOUR_CLIENT_ID.apps.googleusercontent.com',
-      API_KEY: 'YOUR_API_KEY',
-      SPREADSHEET_ID: 'YOUR_SPREADSHEET_ID'
-    };
-
-    // Google API Başlat
-    function initializeGoogleAPI() {
-      gapi.load('client:auth2', async () => {
-        try {
-          await gapi.client.init({
-            apiKey: GOOGLE_SHEET_CONFIG.API_KEY,
-            clientId: GOOGLE_SHEET_CONFIG.CLIENT_ID,
-            scope: 'https://www.googleapis.com/auth/spreadsheets',
-            discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4']
-          });
-          console.log('✓ Google API başlatıldı');
-          checkAndSignInSilently();
-        } catch (error) {
-          console.error('API başlatma hatası:', error);
-        }
-      });
-    }
-
-    // Sessiz Giriş Dene
-    async function checkAndSignInSilently() {
-      try {
-        const auth2 = gapi.auth2.getAuthInstance();
-        if (auth2 && !auth2.isSignedIn.get()) {
-          await auth2.signIn();
-          console.log('✓ Google hesabına otomatik olarak bağlandı');
-        }
-      } catch (error) {
-        console.log('Sessiz giriş başarısız (ilk kez yüklenmişse normal)');
-      }
-    }
-
-    // Google Sheets'e Veri Gönder
-
-async function sendToGoogleSheets(audit) {
-  try {
-    // Google Apps Script Web App URL
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/library/d/1QSOgVAl0M4o-3pC66vogd03MoWfBWcJbbVS9RzbgGRwepYWx2t1I_KEI/20';
-    // ⬆️ BURAYA KENDI DEPLOYMENT URL'İNİZİ YAPTIŞTIRIN
-    
-    const compliantCount = Object.values(audit.answers || {}).filter(a => a.value === 'yes').length;
-    const deficiencyCount = Object.values(audit.answers || {}).filter(a => a.value === 'no').length;
-    const otherDefCount = (audit.other_deficiencies || []).length;
-    
-    const payload = {
-      id: audit.id,
-      audit_date: audit.audit_date,
-      school_name: audit.school_name,
-      school_code: audit.school_code,
-      school_district: audit.school_district || '',
-      manager_count: audit.manager_count || 0,
-      teacher_count: audit.teacher_count || 0,
-      total_personnel: audit.total_personnel || 0,
-      total_students: audit.total_students || 0,
-      compliant_count: compliantCount,
-      deficiency_count: deficiencyCount,
-      other_dof_count: otherDefCount,
-      status: audit.status,
-      created_at: new Date().toLocaleString('tr-TR')
-    };
-    
-    const response = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      payload: JSON.stringify(payload)
-    });
-   
-    const result = await response.json();
-    
-    if (result.success) {
-      console.log('✓ Google Sheets\'e başarıyla gönderildi');
-      return true;
-    } else {
-      console.error('Google Sheets gönderme hatası:', result.error);
-      return false;
-    }
-  } catch (error) {
-    console.error('Google Sheets gönderme hatası:', error);
-    console.log('Veri LocalStorage\'da kaydedildi');
-    return false;
-  }
-}
- 
-  <!-- Ana Sayfa -->
+ <body class="h-full bg-gray-50"><!-- Ana Sayfa -->
   <div id="home-page" class="h-full overflow-auto"><!-- Sabit Başlık ve Sekmeler -->
    <div class="sticky top-0 z-20 bg-gray-50 pb-4">
     <div class="max-w-4xl mx-auto p-4 pb-0"><!-- Başlık -->
@@ -1966,129 +1870,91 @@ const auditQuestions = {
     // Denetimi Kaydet
 
 async function saveAudit() {
+  console.log("Kayıt işlemi başlatıldı...");
   const saveBtn = document.getElementById('save-audit');
   saveBtn.disabled = true;
-  saveBtn.textContent = '⏳ Kaydediliyor...';
+  saveBtn.textContent = '⏳ Google\'a Gönderiliyor...';
 
   try {
-    const filteredPhotos = {};
-    Object.keys(appState.photos).forEach(code => {
-      if (appState.answers[code] && appState.answers[code].value === 'no') {
-        filteredPhotos[code] = appState.photos[code];
-      }
+    // 1. Veri Paketini Hazırla
+    const veriler = {
+      kurum_adi: document.getElementById('school-name').value || "Belirtilmedi",
+      denetimci: document.getElementById('inspector-name').value || "İSG Uzmanı",
+      tarih: document.getElementById('audit-date').value || new Date().toLocaleDateString('tr-TR'),
+      issues: []
+    };
+
+    console.log("Okul Adı:", veriler.kurum_adi);
+
+    // 2. appState.answers içindeki verileri topla
+    // Senin kodunda cevaplar appState.answers[code].value içinde (yes/no)
+    Object.keys(auditQuestions).forEach(catKey => {
+      const category = auditQuestions[catKey];
+      category.questions.forEach(q => {
+        const answerData = appState.answers[q.code];
+        if (answerData) {
+          veriler.issues.push({
+            category: category.title,
+            code: q.code,
+            text: q.text,
+            answer: answerData.value === 'yes' ? 'Evet' : 'Hayır',
+            dof: answerData.value === 'no' ? (answerData.observation || q.dof) : '-'
+          });
+        }
+      });
     });
 
-    let newAudit;
+    console.log("Paketlenen soru sayısı:", veriler.issues.length);
 
-    if (appState.editingAuditId) {
-      const auditIndex = appState.allAudits.findIndex(a => a.id === appState.editingAuditId);
-      if (auditIndex !== -1) {
-        appState.allAudits[auditIndex] = {
-          ...appState.allAudits[auditIndex],
-          school_name: appState.schoolName,
-          school_code: appState.schoolCode,
-          school_district: appState.schoolDistrict,
-          audit_date: appState.auditDate,
-          school_address: appState.schoolAddress,
-          school_scope: appState.schoolScope,
-          school_hazard_class: appState.schoolHazardClass,
-          school_phone: appState.schoolPhone,
-          school_email: appState.schoolEmail,
-          manager_count: appState.managerCount,
-          teacher_count: appState.teacherCount,
-          officer_count: appState.officerCount,
-          servant_count: appState.servantCount,
-          worker_count: appState.workerCount,
-          typ_count: appState.typCount,
-          paid_teacher_count: appState.paidTeacherCount,
-          contract_count: appState.contractCount,
-          master_instructor_count: appState.masterInstructorCount,
-          disabled_count: appState.disabledCount,
-          exconvict_count: appState.exconvictCount,
-          chronic_count: appState.chronicCount,
-          total_personnel: appState.totalPersonnel,
-          normal_student_count: appState.normalStudentCount,
-          disabled_student_count: appState.disabledStudentCount,
-          inclusion_student_count: appState.inclusionStudentCount,
-          chronic_student_count: appState.chronicStudentCount,
-          total_students: appState.totalStudents,
-          answers: appState.answers,
-          photos: filteredPhotos,
-          previous_deficiencies: appState.previousDeficiencies,
-          other_deficiencies: appState.otherDeficiencies,
-          status: 'completed',
-          updated_at: new Date().toISOString()
-        };
-        newAudit = appState.allAudits[auditIndex];
-      }
-    } else {
-      newAudit = {
-        id: generateId(),
-        school_code: appState.schoolCode,
-        school_name: appState.schoolName,
-        school_district: appState.schoolDistrict,
-        audit_date: appState.auditDate,
-        school_address: appState.schoolAddress,
-        school_scope: appState.schoolScope,
-        school_hazard_class: appState.schoolHazardClass,
-        school_phone: appState.schoolPhone,
-        school_email: appState.schoolEmail,
-        manager_count: appState.managerCount,
-        teacher_count: appState.teacherCount,
-        officer_count: appState.officerCount,
-        servant_count: appState.servantCount,
-        worker_count: appState.workerCount,
-        typ_count: appState.typCount,
-        paid_teacher_count: appState.paidTeacherCount,
-        contract_count: appState.contractCount,
-        master_instructor_count: appState.masterInstructorCount,
-        disabled_count: appState.disabledCount,
-        exconvict_count: appState.exconvictCount,
-        chronic_count: appState.chronicCount,
-        total_personnel: appState.totalPersonnel,
-        normal_student_count: appState.normalStudentCount,
-        disabled_student_count: appState.disabledStudentCount,
-        inclusion_student_count: appState.inclusionStudentCount,
-        chronic_student_count: appState.chronicStudentCount,
-        total_students: appState.totalStudents,
-        answers: appState.answers,
-        photos: filteredPhotos,
-        previous_deficiencies: appState.previousDeficiencies,
-        other_deficiencies: appState.otherDeficiencies,
-        status: 'completed',
-        created_at: new Date().toISOString()
-      };
-      appState.allAudits.push(newAudit);
+    if (veriler.issues.length === 0) {
+      alert("Lütfen en az bir soruyu cevaplayın!");
+      saveBtn.disabled = false;
+      saveBtn.textContent = '💾 Denetimi Kaydet';
+      return;
     }
 
-    // LocalStorage'a kaydet
-    saveAuditsToStorage();
-    
-    // Google Sheets'e otomatik gönder
-    saveBtn.textContent = '⏳ Google Sheets\'e gönderiliyor...';
-    await sendToGoogleSheets(newAudit);
+    // 3. Google Apps Script'e Gönder
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+      console.log("Google Script bağlantısı aktif, gönderiliyor...");
+      
+      google.script.run
+        .withSuccessHandler(function(response) {
+          console.log("Sunucudan gelen yanıt:", response);
+          const res = JSON.parse(response);
+          
+          if (res.status === "ok") {
+            saveBtn.disabled = false;
+            saveBtn.textContent = '✅ Kayıt Başarılı';
+            saveBtn.classList.replace('bg-blue-600', 'bg-green-600');
+            alert('Başarılı! Veriler E-Tabloya işlendi.');
+            if (res.url) window.open(res.url, '_blank');
+            clearTempAudit();
+          } else {
+            alert("Sunucu Hatası: " + res.message);
+            saveBtn.disabled = false;
+            saveBtn.textContent = '❌ Hata Oluştu';
+          }
+        })
+        .withFailureHandler(function(err) {
+          console.error("Google Script Hatası:", err);
+          alert("Bağlantı Hatası: " + err);
+          saveBtn.disabled = false;
+          saveBtn.textContent = '❌ Tekrar Dene';
+        })
+        .processData(JSON.stringify(veriler));
+    } else {
+      console.error("Google Script objesi bulunamadı!");
+      alert("Hata: Uygulama Google sunucularına bağlanamıyor. Lütfen 'Dağıtılmış URL' üzerinden açtığınızdan emin olun.");
+      saveBtn.disabled = false;
+    }
 
-    renderAuditHistory();
-    
-    saveBtn.disabled = false;
-    saveBtn.textContent = '💾 Denetimi Kaydet';
-
-    showToast('✓ Denetim kaydedildi ve Google Sheets\'e gönderildi!');
-    appState.editingAuditId = null;
-    clearTempAudit();
-    
-    setTimeout(() => {
-      clearAllForm();
-      showPage('home');
-      switchTab('new');
-    }, 2000);
   } catch (error) {
-    console.error('Kayıt hatası:', error);
+    console.error('Kritik hata:', error);
     saveBtn.disabled = false;
-    saveBtn.textContent = '❌ Kayıt Hatası';
-    showToast('❌ Kayıt sırasında hata oluştu!');
+    saveBtn.textContent = '❌ Hata';
   }
 }
+
 
     function saveAudit() {
       const saveBtn = document.getElementById('save-audit');
@@ -2717,9 +2583,4 @@ async function submitAudit() {
   </script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c79b84c11c6d5ff',t:'MTc3MDAzNTYzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
-
-
-
-
-
 
