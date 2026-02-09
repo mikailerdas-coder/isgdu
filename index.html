@@ -1971,7 +1971,19 @@ function findQuestionByCode(code) {
 }
 
 // ==========================================
-// 2. PDF İNDİR FONKSİYONU
+// 1. SİLME FONKSİYONU (Eksik olan kısım)
+// ==========================================
+function deleteAudit(id) {
+    if (confirm('Bu denetim kaydını silmek istediğinize emin misiniz?')) {
+        appState.allAudits = appState.allAudits.filter(audit => audit.id !== id);
+        saveAuditsToStorage();
+        renderAuditHistory();
+        showToast('Kayıt silindi', 'info');
+    }
+}
+
+// ==========================================
+// 2. PDF İNDİR FONKSİYONU (Güncellendi)
 // ==========================================
 async function downloadPDF() {
     const downloadBtn = document.getElementById('download-pdf');
@@ -1982,15 +1994,13 @@ async function downloadPDF() {
     downloadBtn.textContent = '⏳ PDF Hazırlanıyor...';
 
     try {
+        // jsPDF erişim kontrolü
         const { jsPDF } = window.jspdf;
+        if (!jsPDF) throw new Error("jsPDF kütüphanesi yüklenemedi!");
+        
         const doc = new jsPDF();
 
-        const formatDate = (dateStr) => {
-            if (!dateStr) return '';
-            const date = new Date(dateStr);
-            return isNaN(date.getTime()) ? dateStr : date.toLocaleDateString('tr-TR');
-        };
-
+        // Türkçe Karakter Desteği İçin Font Yükleme
         const fontUrl = "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf";
         const response = await fetch(fontUrl);
         const fontBlob = await response.blob();
@@ -2004,86 +2014,76 @@ async function downloadPDF() {
         doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
         doc.setFont("Roboto");
 
-        const greenFill = [22, 163, 74]; 
-        const redFill = [185, 28, 28];
+        // Başlık ve Okul Bilgileri
+        doc.setFontSize(14);
+        doc.text("İSG DENETİM RAPORU", 105, 15, { align: "center" });
+        
+        doc.setFontSize(10);
+        doc.text(`Okul Adı: ${appState.schoolName || "-"}`, 14, 25);
+        doc.text(`İlçe: ${appState.schoolDistrict || "-"}`, 14, 30);
+        doc.text(`Tarih: ${appState.auditDate || "-"}`, 14, 35);
 
-        const drawHeader = (data) => {
-            doc.autoTable({
-                startY: 10,
-                tableWidth: 182,
-                margin: { left: 14 },
-                theme: 'grid',
-                styles: { font: "Roboto", fontSize: 7, cellPadding: 1, halign: 'center' },
-                body: [
-                    [
-                        { content: 'İŞYERİ SAĞLIK VE GÜVENLİK BİRİMİ', rowSpan: 2, styles: { cellWidth: 30, fontSize: 6 } },
-                        { content: 'DENETLEME FORMU', rowSpan: 2, styles: { cellWidth: 92, fontSize: 10, fontStyle: 'bold' } },
-                        { content: 'Doküman No: FRM.014' },
-                    ],
-                    [{ content: 'Sayfa No: ' + data.pageNumber }]
-                ],
-            });
-        };
-
-        doc.autoTable({
-            startY: 35,
-            head: [[{ content: 'OKUL BİLGİLERİ', colSpan: 4 }]],
-            body: [
-                ['Okul Adı', appState.schoolName, 'Tarih', formatDate(appState.auditDate)],
-                ['Okul Kodu', appState.schoolCode, 'İlçe', appState.schoolDistrict]
-            ],
-            theme: 'grid',
-            styles: { font: "Roboto", fontSize: 8 },
-            headStyles: { fillColor: greenFill },
-            didDrawPage: drawHeader
+        // Denetim Soruları Tablosu
+        const tableData = [];
+        Object.keys(appState.answers).forEach(code => {
+            const ans = appState.answers[code];
+            const question = findQuestionByCode(code);
+            tableData.push([
+                code,
+                question ? question.text : "Soru metni yok",
+                ans.value === 'yes' ? 'EVET' : 'HAYIR',
+                ans.note || ""
+            ]);
         });
 
-        let currentY = doc.lastAutoTable.finalY + 5;
-        let deficiencies = [];
-
-        if (typeof categoryOrder !== 'undefined') {
-            categoryOrder.forEach(catKey => {
-                const category = auditQuestions[catKey];
-                const rows = category.questions.map(q => {
-                    const ans = appState.answers[q.code] || { value: '' };
-                    if (ans.value === 'no') deficiencies.push(`[${q.code}] ${ans.observation || q.dof}`);
-                    return [q.code, q.text, ans.value === 'yes' ? 'X' : '', ans.value === 'no' ? 'X' : ''];
-                });
-
-                doc.autoTable({
-                    startY: currentY,
-                    head: [[catKey, category.title, 'E', 'H']],
-                    body: rows,
-                    theme: 'grid',
-                    styles: { font: "Roboto", fontSize: 7 },
-                    headStyles: { fillColor: greenFill },
-                    columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 140 }, 2: { cellWidth: 10 }, 3: { cellWidth: 10 } },
-                    didDrawPage: drawHeader
-                });
-                currentY = doc.lastAutoTable.finalY + 5;
-            });
-        }
-
         doc.autoTable({
-            startY: currentY,
-            head: [['TESPİT EDİLEN EKSİKLİKLER VE ÖNERİLER']],
-            body: deficiencies.length > 0 ? deficiencies.map(d => [d]) : [['Eksiklik tespit edilmemiştir.']],
-            theme: 'grid',
+            startY: 45,
+            head: [['Kod', 'Soru', 'Durum', 'Notlar']],
+            body: tableData,
             styles: { font: "Roboto", fontSize: 8 },
-            headStyles: { fillColor: redFill },
-            didDrawPage: drawHeader
+            headStyles: { fillColor: [37, 99, 235] }
         });
 
         doc.save(`${appState.schoolName || 'Denetim'}_Raporu.pdf`);
-        downloadBtn.textContent = originalText;
-        downloadBtn.disabled = false;
+        showToast('PDF başarıyla indirildi');
 
     } catch (error) {
         console.error('PDF Hatası:', error);
-        showToast("PDF Hatası: " + error.message, "error");
-        downloadBtn.textContent = '❌ Hata';
+        alert("PDF oluşturulurken bir hata oluştu: " + error.message);
+    } finally {
+        downloadBtn.textContent = originalText;
         downloadBtn.disabled = false;
     }
+}
+
+// ==========================================
+// 3. VERİLERİ YÜKLEME VE LİSTELEME (Tamir Edildi)
+// ==========================================
+function renderAuditHistory() {
+    const historyList = document.getElementById('audit-history-list');
+    if (!historyList) return;
+
+    if (appState.allAudits.length === 0) {
+        historyList.innerHTML = '<div class="p-4 text-center text-gray-500">Henüz kayıtlı denetim bulunmuyor.</div>';
+        return;
+    }
+
+    historyList.innerHTML = appState.allAudits.map(audit => `
+        <div class="p-4 border-b hover:bg-gray-50 transition-colors">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h4 class="font-bold text-blue-800">${audit.school_name}</h4>
+                    <p class="text-xs text-gray-500">${audit.audit_date} • ${audit.school_district}</p>
+                    <p class="text-sm mt-1 text-red-600">Eksiklik Sayısı: ${audit.deficiency_count}</p>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="deleteAudit(${audit.id})" class="p-2 text-red-600 hover:bg-red-50 rounded" title="Sil">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
 }
 
 // ==========================================
@@ -2154,6 +2154,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
 
 
 
