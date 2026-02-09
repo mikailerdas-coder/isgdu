@@ -1975,10 +1975,32 @@ function findQuestionByCode(code) {
 // ==========================================
 function deleteAudit(id) {
     if (confirm('Bu denetim kaydını silmek istediğinize emin misiniz?')) {
+        // 1. Veriyi diziden sil
         appState.allAudits = appState.allAudits.filter(audit => audit.id !== id);
+        
+        // 2. Güncel durumu yerel depolamaya kaydet
         saveAuditsToStorage();
+        
+        // 3. LİSTEYİ GÜNCELLE (Ekrana yansıt)
         renderAuditHistory();
+        
+        // 4. İSTATİSTİKLERİ SIFIRLA VEYA GÜNCELLE
+        if (typeof updateDashboardStats === 'function') {
+            updateDashboardStats(); // Ana sayfadaki rakamları güncelleyen fonksiyon
+        } else {
+            // Eğer özel bir fonksiyonunuz yoksa ana sayfayı yeniden yükleterek rakamları tazeleyebiliriz
+            renderAuditHistory(); 
+        }
+
         showToast('Kayıt silindi', 'info');
+        
+        // Eğer hiç kayıt kalmadıysa istatistik alanlarını manuel olarak sıfıra çekelim
+        if (appState.allAudits.length === 0) {
+            const totalAuditElem = document.getElementById('total-audits-stat');
+            const totalDeficiencyElem = document.getElementById('total-deficiencies-stat');
+            if (totalAuditElem) totalAuditElem.textContent = '0';
+            if (totalDeficiencyElem) totalDeficiencyElem.textContent = '0';
+        }
     }
 }
 
@@ -2154,6 +2176,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
 
 
 
