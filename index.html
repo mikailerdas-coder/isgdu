@@ -1869,110 +1869,109 @@ const auditQuestions = {
 
     // Denetimi Kaydet
 
-// ==========================================
-// 1. DENETİMİ KAYDET FONKSİYONU
-// ==========================================
 async function saveAudit() {
-    const saveBtn = document.getElementById('save-audit');
-    if (!saveBtn) return;
+  const saveBtn = document.getElementById('save-audit');
+  saveBtn.disabled = true;
+  saveBtn.textContent = '⏳ İşleniyor...';
 
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwnvTIrk1iIc8DKSjRrWy6qojmLhYos7ykkLd2BZ63nfxzyiuIOkKJhrJGnwVTNgJFG/exec";
-
-    let deficienciesList = "";
-    let deficiencyCount = 0;
-
-    if (!appState || !appState.answers) {
-        showToast("Hata: Denetim verileri bulunamadı!", "error");
-        return;
-    }
-
-    Object.keys(appState.answers).forEach(code => {
-        const answerData = appState.answers[code];
-        if (answerData && answerData.value === 'no') {
-            deficiencyCount++;
-            const question = findQuestionByCode(code); 
-            const questionText = question ? question.text : "Soru bulunamadı";
-            const dofText = answerData.observation || (question ? question.dof : "DÖF belirtilmedi");
-            deficienciesList += `${deficiencyCount}- [${code}] ${questionText} | DÖF: ${dofText}\n`;
-        }
+  try {
+    // 1. Fotoğrafları Filtrele (Sadece "Hayır" denilenlerin fotoğraflarını al)
+    const filteredPhotos = {};
+    Object.keys(appState.photos).forEach(code => {
+      if (appState.answers[code] && appState.answers[code].value === 'no') {
+        filteredPhotos[code] = appState.photos[code];
+      }
     });
 
+    // 2. Veri Paketini Oluştur (Mevcut yapınız)
     const auditData = {
-        id: appState.editingAuditId || Date.now(),
-        timestamp: new Date().toLocaleString('tr-TR'),
-        school_name: appState.schoolName || "Belirtilmedi",
-        school_code: appState.schoolCode || "Belirtilmedi",
-        school_district: appState.schoolDistrict || "Belirtilmedi",
-        audit_date: appState.auditDate || new Date().toLocaleDateString('tr-TR'),
-        school_scope: appState.schoolScope || "",
-        school_hazard_class: appState.schoolHazardClass || "",
-        total_personnel: appState.totalPersonnel || 0,
-        total_students: appState.totalStudents || 0,
-        deficiencies: deficienciesList || "Eksiklik bulunmadı.",
-        deficiency_count: deficiencyCount,
-        status: 'completed',
-        created_at: new Date().toISOString()
+      id: appState.editingAuditId || generateId(),
+      school_name: appState.schoolName,
+      school_code: appState.schoolCode,
+      school_district: appState.schoolDistrict,
+      audit_date: appState.auditDate,
+      school_address: appState.schoolAddress,
+      school_scope: appState.schoolScope,
+      school_hazard_class: appState.schoolHazardClass,
+      school_phone: appState.schoolPhone,
+      school_email: appState.schoolEmail,
+      manager_count: appState.managerCount,
+      teacher_count: appState.teacherCount,
+      officer_count: appState.officerCount,
+      servant_count: appState.servantCount,
+      worker_count: appState.workerCount,
+      typ_count: appState.typCount,
+      paid_teacher_count: appState.paidTeacherCount,
+      contract_count: appState.contractCount,
+      master_instructor_count: appState.masterInstructorCount,
+      disabled_count: appState.disabledCount,
+      exconvict_count: appState.exconvictCount,
+      chronic_count: appState.chronicCount,
+      total_personnel: appState.totalPersonnel,
+      normal_student_count: appState.normalStudentCount,
+      disabled_student_count: appState.disabledStudentCount,
+      inclusion_student_count: appState.inclusionStudentCount,
+      chronic_student_count: appState.chronicStudentCount,
+      total_students: appState.totalStudents,
+      answers: appState.answers,
+      photos: filteredPhotos,
+      previous_deficiencies: appState.previousDeficiencies,
+      other_deficiencies: appState.otherDeficiencies,
+      status: 'completed',
+      created_at: new Date().toISOString()
     };
 
-    try {
-        saveBtn.disabled = true;
-        saveBtn.textContent = '⏳ Kaydediliyor...';
-
-        if (appState.editingAuditId) {
-            const index = appState.allAudits.findIndex(a => a.id === appState.editingAuditId);
-            if (index !== -1) appState.allAudits[index] = auditData;
-        } else {
-            appState.allAudits.push(auditData);
-        }
-        
-        if (typeof saveAuditsToStorage === 'function') saveAuditsToStorage();
-        if (typeof renderAuditHistory === 'function') renderAuditHistory();
-
-        try {
-            await fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                cache: 'no-cache',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(auditData)
-            });
-        } catch (e) {
-            console.warn("Google Sheets bağlantı hatası.");
-        }
-
-        showToast('✅ Kayıt Başarılı!');
-        
-        appState.editingAuditId = null;
-        if (typeof clearTempAudit === 'function') clearTempAudit();
-        
-        setTimeout(() => {
-            if (typeof clearAllForm === 'function') clearAllForm();
-            showPage('home');
-            if (typeof switchTab === 'function') switchTab('data');
-            saveBtn.disabled = false;
-            saveBtn.textContent = '💾 Denetimi Kaydet';
-        }, 1500);
-
-    } catch (error) {
-        console.error('Kayıt Hatası:', error);
-        showToast('Hata: ' + error.message, "error");
-        saveBtn.disabled = false;
-        saveBtn.textContent = '💾 Denetimi Kaydet';
+    // 3. Yerel Kayıt İşlemi (Tarayıcı Hafızası)
+    if (appState.editingAuditId) {
+      const auditIndex = appState.allAudits.findIndex(a => a.id === appState.editingAuditId);
+      if (auditIndex !== -1) appState.allAudits[auditIndex] = auditData;
+    } else {
+      appState.allAudits.push(auditData);
     }
+    saveAuditsToStorage();
+    renderAuditHistory();
+
+    // 4. GOOGLE SHEETS'E GÖNDERİM
+    // Not: Fotoğraflar çok büyükse Sheets'e göndermek hata verebilir, bu yüzden answers ve genel bilgileri öncelikli gönderiyoruz.
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzq497L6bZoevHG-JN1acEyoVZ6JEaYOY6OX0aSYrcjMP1DANtSfP7700cafi8Upzr8/exec";
+    
+    saveBtn.textContent = '⏳ Google Sheets\'e Aktarılıyor...';
+    
+    // fetch ile gönderim (no-cors modu GitHub/PWA uyumludur)
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      cache: 'no-cache',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(auditData)
+    }).then(() => {
+      console.log("Veri başarıyla buluta fırlatıldı.");
+    }).catch(e => console.error("Bulut kayıt hatası:", e));
+
+    // 5. Başarı Bildirimi ve Ekran Temizliği
+    showToast('Denetim kaydedildi ve Google Sheets\'e gönderildi ✓');
+    saveBtn.disabled = false;
+    saveBtn.textContent = '💾 Denetimi Kaydet';
+    
+    appState.editingAuditId = null;
+    clearTempAudit();
+    
+    setTimeout(() => {
+      clearAllForm();
+      showPage('home');
+      switchTab('data');
+    }, 1500);
+
+  } catch (error) {
+    console.error('Kritik Hata:', error);
+    showToast('Hata: ' + error.message);
+    saveBtn.disabled = false;
+    saveBtn.textContent = '💾 Denetimi Kaydet';
+  }
 }
 
-function findQuestionByCode(code) {
-    if (typeof auditQuestions === 'undefined') return null;
-    for (let catKey in auditQuestions) {
-        const question = auditQuestions[catKey].questions.find(q => q.code === code);
-        if (question) return question;
-    }
-    return null;
-}
 
-// ==========================================
-// 2. PDF İNDİR FONKSİYONU
-// ==========================================
+    // PDF İndir
 async function downloadPDF() {
     const downloadBtn = document.getElementById('download-pdf');
     if (!downloadBtn) return;
@@ -1982,20 +1981,29 @@ async function downloadPDF() {
     downloadBtn.textContent = '⏳ PDF Hazırlanıyor...';
 
     try {
-        const { jsPDF } = window.jspdf;
+        const jspdf = window.jspdf;
+        if (!jspdf) throw new Error("jsPDF kütüphanesi bulunamadı!");
+        
+        const { jsPDF } = jspdf;
         const doc = new jsPDF();
 
+        // --- YARDIMCI FONKSİYONLAR ---
         const formatDate = (dateStr) => {
             if (!dateStr) return '';
             const date = new Date(dateStr);
-            return isNaN(date.getTime()) ? dateStr : date.toLocaleDateString('tr-TR');
+            if (isNaN(date.getTime())) return dateStr;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
         };
 
+        // --- 1. TÜRKÇE FONT YÜKLEME ---
         const fontUrl = "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf";
         const response = await fetch(fontUrl);
         const fontBlob = await response.blob();
+        const reader = new FileReader();
         const fontBase64 = await new Promise((resolve) => {
-            const reader = new FileReader();
             reader.onloadend = () => resolve(reader.result.split(',')[1]);
             reader.readAsDataURL(fontBlob);
         });
@@ -2004,156 +2012,469 @@ async function downloadPDF() {
         doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
         doc.setFont("Roboto");
 
+        // --- AYARLAR ---
         const greenFill = [22, 163, 74]; 
         const redFill = [185, 28, 28];
+        const rowHeight = 6; 
 
+        // --- GÜNCELLENMİŞ SÜTUN GENİŞLİKLERİ ---
+        const colStylesDenetim = {
+            0: { cellWidth: 10, halign: 'center' }, // Soru Kodu (10 mm yapıldı)
+            1: { cellWidth: 102 },                  // Soru Metni (Koddan artan 5mm buraya eklendi)
+            2: { cellWidth: 15, halign: 'center' }, // EVET
+            3: { cellWidth: 15, halign: 'center' }, // HAYIR
+            4: { cellWidth: 40 }                    // AÇIKLAMA (Sabit 40 mm)
+        };
+
+        // --- 2. ÜST BİLGİ (HEADER) ---
         const drawHeader = (data) => {
+            const ilceAdi = (appState.schoolDistrict || "..........").toUpperCase();
             doc.autoTable({
                 startY: 10,
                 tableWidth: 182,
                 margin: { left: 14 },
                 theme: 'grid',
-                styles: { font: "Roboto", fontSize: 7, cellPadding: 1, halign: 'center' },
+                styles: { font: "Roboto", fontSize: 7, cellPadding: 1, valign: 'middle', textColor: [0, 0, 0], lineWidth: 0.2 },
                 body: [
                     [
-                        { content: 'İŞYERİ SAĞLIK VE GÜVENLİK BİRİMİ', rowSpan: 2, styles: { cellWidth: 30, fontSize: 6 } },
-                        { content: 'DENETLEME FORMU', rowSpan: 2, styles: { cellWidth: 92, fontSize: 10, fontStyle: 'bold' } },
-                        { content: 'Doküman No: FRM.014' },
+                        { content: 'İŞYERİ SAĞLIK VE\nGÜVENLİK BİRİMİ', rowSpan: 5, styles: { cellWidth: 30, fontStyle: 'bold', fontSize: 6, valign: 'bottom', halign: 'center', minCellHeight: 25 } },
+                        { content: `ANKARA İL MİLLİ EĞİTİM MÜDÜRLÜĞÜ\n${ilceAdi} İLÇE MİLLİ EĞİTİM MÜDÜRLÜĞÜ\nOKUL/KURUM İSG REHBERLİK, ÇALIŞMA ORTAMI GÖZETİM VE DENETLEME FORMU`, rowSpan: 5, styles: { cellWidth: 92, fontSize: 8, fontStyle: 'bold', halign: 'center' } },
+                        { content: ' Doküman No', styles: { cellWidth: 28, halign: 'left' } },
+                        { content: 'FRM.014', styles: { cellWidth: 32, halign: 'center' } }
                     ],
-                    [{ content: 'Sayfa No: ' + data.pageNumber }]
+                    [{ content: ' İlk Yayın Tarihi', styles: { halign: 'left' } }, { content: '30.10.2023', styles: { halign: 'center' } }],
+                    [{ content: ' Revizyon Tarihi', styles: { halign: 'left' } }, { content: '../../20..', styles: { halign: 'center' } }],
+                    [{ content: ' Revizyon No', styles: { halign: 'left' } }, { content: '0', styles: { halign: 'center' } }],
+                    [{ content: ' Sayfa No', styles: { halign: 'left' } }, { content: '' }] 
                 ],
             });
+            data.settings.margin.top = 38; 
         };
 
+        const formattedAuditDate = formatDate(appState.auditDate);
+
+        // --- 3. TABLOLAR ---
+
+        // Okul Bilgileri
         doc.autoTable({
-            startY: 35,
-            head: [[{ content: 'OKUL BİLGİLERİ', colSpan: 4 }]],
+            startY: 38, 
+            head: [[
+                { content: 'OKUL/KURUM BİLGİLERİ', colSpan: 2, styles: { halign: 'left', valign: 'middle' } }, 
+                { content: `TARİH: ${formattedAuditDate}`, colSpan: 2, styles: { halign: 'right', valign: 'middle', cellPadding: { right: 20 } } } 
+            ]],
             body: [
-                ['Okul Adı', appState.schoolName, 'Tarih', formatDate(appState.auditDate)],
-                ['Okul Kodu', appState.schoolCode, 'İlçe', appState.schoolDistrict]
+                ['Adı', appState.schoolName || '', 'Tehlike Sınıfı', appState.schoolHazardClass || ''],
+                ['Kodu', appState.schoolCode || '', 'İşyeri Sicil No', appState.schoolRegistrationNumber || ''],
+                ['Adresi', appState.schoolAddress || '', 'Telefon', appState.schoolPhone || ''],
+                ['Kapsam', appState.schoolScope || '', 'E-Posta', appState.schoolEmail || '']
             ],
             theme: 'grid',
-            styles: { font: "Roboto", fontSize: 8 },
+            styles: { font: "Roboto", fontSize: 8, cellPadding: 1.2, valign: 'middle', minCellHeight: rowHeight },
+            headStyles: { fillColor: greenFill, textColor: [255, 255, 255], fontStyle: 'bold' },
+            columnStyles: { 0: { cellWidth: 15, fontStyle: 'bold' }, 1: { cellWidth: 70 }, 2: { cellWidth: 31, fontStyle: 'bold' }, 3: { cellWidth: 66 } },
+            didDrawPage: drawHeader
+        });
+
+        // Personel Bilgileri
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 3,
+            head: [['PERSONEL TÜRÜ', 'Normal', 'Engelli', 'Eski Hükümlü', 'Kronik']],
+            body: [
+                ['Yönetici Sayısı', appState.managerCount || '0', '', '', ''],
+                ['Öğretmen Sayısı', appState.teacherCount || '0', '', '', ''],
+                ['Öğrenci Sayısı', appState.totalStudents || '0', appState.disabledStudentCount || '0', '', '']
+            ],
+            theme: 'grid',
+            styles: { font: "Roboto", fontSize: 8, valign: 'middle', minCellHeight: rowHeight, cellPadding: 1.2 },
             headStyles: { fillColor: greenFill },
             didDrawPage: drawHeader
         });
 
-        let currentY = doc.lastAutoTable.finalY + 5;
-        let deficiencies = [];
-
-        if (typeof categoryOrder !== 'undefined') {
-            categoryOrder.forEach(catKey => {
+        // Denetim Maddeleri (Kod: 10mm, Açıklama: 40mm)
+        let currentY = doc.lastAutoTable.finalY + 3;
+        let deficiencies = []; 
+        if (typeof categoryOrder !== 'undefined' && typeof auditQuestions !== 'undefined') {
+            for (const catKey of categoryOrder) {
                 const category = auditQuestions[catKey];
                 const rows = category.questions.map(q => {
-                    const ans = appState.answers[q.code] || { value: '' };
-                    if (ans.value === 'no') deficiencies.push(`[${q.code}] ${ans.observation || q.dof}`);
-                    return [q.code, q.text, ans.value === 'yes' ? 'X' : '', ans.value === 'no' ? 'X' : ''];
+                    const ans = appState.answers[q.code] || { value: '', note: '', dof: '' };
+                    if (ans.value === 'no') deficiencies.push(`${ans.dof || 'Belirtilmedi'} (${q.code})`);
+                    return [q.code, q.text, ans.value === 'yes' ? 'X' : '', ans.value === 'no' ? 'X' : '', ans.note || ''];
                 });
-
                 doc.autoTable({
                     startY: currentY,
-                    head: [[catKey, category.title, 'E', 'H']],
+                    head: [[catKey, category.title, 'EVET', 'HAYIR', 'AÇIKLAMA']],
                     body: rows,
                     theme: 'grid',
-                    styles: { font: "Roboto", fontSize: 7 },
+                    styles: { font: "Roboto", fontSize: 7, valign: 'middle', minCellHeight: rowHeight, cellPadding: 1.2 },
                     headStyles: { fillColor: greenFill },
-                    columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 140 }, 2: { cellWidth: 10 }, 3: { cellWidth: 10 } },
+                    columnStyles: colStylesDenetim, 
+                    pageBreak: 'auto',
                     didDrawPage: drawHeader
                 });
-                currentY = doc.lastAutoTable.finalY + 5;
-            });
+                currentY = doc.lastAutoTable.finalY + 3;
+            }
+        }
+
+        // Gözlemler (Kırmızı Bölüm)
+        let finalDofRows = deficiencies.map((dofText, index) => [(index + 1).toString(), dofText]);
+        if (appState.otherDeficiencies && appState.otherDeficiencies.length > 0) {
+            appState.otherDeficiencies.forEach((other, i) => finalDofRows.push([(deficiencies.length + i + 1).toString(), other]));
         }
 
         doc.autoTable({
-            startY: currentY,
-            head: [['TESPİT EDİLEN EKSİKLİKLER VE ÖNERİLER']],
-            body: deficiencies.length > 0 ? deficiencies.map(d => [d]) : [['Eksiklik tespit edilmemiştir.']],
+            startY: currentY + 3,
+            head: [[{ content: 'OKUL/KURUMDA GÖZLEMLER, EKSİKLİKLER, TESPİT, ÖNERİLER VE DEĞERLENDİRMELER', colSpan: 2 }]],
+            body: finalDofRows.length > 0 ? finalDofRows : [['-', 'Yapılan denetimde herhangi bir uygunsuzluk tespit edilmemiştir.']],
             theme: 'grid',
-            styles: { font: "Roboto", fontSize: 8 },
-            headStyles: { fillColor: redFill },
+            styles: { font: "Roboto", fontSize: 8, cellPadding: 1.2, valign: 'middle', minCellHeight: rowHeight },
+            headStyles: { fillColor: redFill, halign: 'center', fontStyle: 'bold' },
+            columnStyles: { 0: { cellWidth: 10, halign: 'center' } }, // Gözlem numarası kod sütunuyla aynı genişlikte
             didDrawPage: drawHeader
         });
 
-        doc.save(`${appState.schoolName || 'Denetim'}_Raporu.pdf`);
-        downloadBtn.textContent = originalText;
-        downloadBtn.disabled = false;
+        // Onay Bölümü
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 5,
+            head: [[{content: 'ONAY', styles:{halign:'center'}}, {content: 'OKUL / KURUM', colSpan:2, styles:{halign:'center'}}, {content: 'İLÇE MİLLİ EĞİTİM MÜDÜRLÜĞÜ', colSpan:2, styles:{halign:'center'}}]],
+            body: [
+                ['UNVANI', 'Müdür Yard.', 'Okul Müdürü', 'İSG Büro Yön.', 'Şube Müdürü'],
+                ['İMZA', '', '', '', ''],
+                ['ADI SOYADI', appState.vicarName || '', appState.principalName || '', appState.inspectorName || '', appState.subManagerName || ''],
+                ['CEP TEL', '', '', '', '']
+            ],
+            theme: 'grid',
+            styles: { font: "Roboto", fontSize: 7, halign: 'center', valign: 'middle', minCellHeight: rowHeight, cellPadding: 1.2 },
+            headStyles: { fillColor: greenFill },
+            didDrawPage: drawHeader
+        });
+
+        // --- 4. SAYFA NUMARALANDIRMA ---
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            doc.setFontSize(7);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`${i} / ${totalPages}`, 180, 33.0, { align: 'center' }); 
+        }
+
+        doc.save(`ISG_Denetim_Raporu_${appState.schoolCode || 'Rapor'}.pdf`);
+        if (typeof showToast !== 'undefined') showToast('Rapor Başarıyla Hazırlandı! ✓');
 
     } catch (error) {
         console.error('PDF Hatası:', error);
-        showToast("PDF Hatası: " + error.message, "error");
-        downloadBtn.textContent = '❌ Hata';
+        alert('Hata: ' + error.message);
+    } finally {
         downloadBtn.disabled = false;
+        downloadBtn.textContent = originalText;
     }
 }
 
-// ==========================================
-// 3. EVENT LISTENERS VE DİĞER FONKSİYONLAR
-// ==========================================
-document.getElementById('school-code').addEventListener('input', checkPreviousAudits);
-document.getElementById('school-name').addEventListener('input', checkPreviousAudits);
-
-document.getElementById('start-audit-btn').addEventListener('click', () => {
-    const schoolCode = document.getElementById('school-code').value.trim();
-    const schoolName = document.getElementById('school-name').value.trim();
-    const schoolDistrict = document.getElementById('school-district').value.trim();
-    const auditDate = document.getElementById('audit-date').value;
+    // Event Listeners
+    document.getElementById('school-code').addEventListener('input', checkPreviousAudits);
+    document.getElementById('school-name').addEventListener('input', checkPreviousAudits);
     
-    if (!schoolCode || !schoolName || !schoolDistrict || !auditDate) {
+    document.getElementById('start-audit-btn').addEventListener('click', () => {
+      const schoolCode = document.getElementById('school-code').value.trim();
+      const schoolName = document.getElementById('school-name').value.trim();
+      const schoolDistrict = document.getElementById('school-district').value.trim();
+      const auditDate = document.getElementById('audit-date').value;
+      const schoolAddress = document.getElementById('school-address').value.trim();
+      const schoolScope = document.getElementById('school-scope').value.trim();
+      const schoolHazardClass = document.getElementById('school-hazard-class').value;
+      const schoolPhone = document.getElementById('school-phone').value.trim();
+      const schoolEmail = document.getElementById('school-email').value.trim();
+      
+      if (!schoolCode || !schoolName || !schoolDistrict || !auditDate) {
         showToast('Lütfen zorunlu alanları doldurun');
         return;
-    }
-    
-    appState.schoolCode = schoolCode;
-    appState.schoolName = schoolName;
-    appState.schoolDistrict = schoolDistrict;
-    appState.auditDate = auditDate;
-    
-    document.getElementById('personnel-school-info').textContent = 
+      }
+      
+      appState.schoolCode = schoolCode;
+      appState.schoolName = schoolName;
+      appState.schoolDistrict = schoolDistrict;
+      appState.auditDate = auditDate;
+      appState.schoolAddress = schoolAddress;
+      appState.schoolScope = schoolScope;
+      appState.schoolHazardClass = schoolHazardClass;
+      appState.schoolPhone = schoolPhone;
+      appState.schoolEmail = schoolEmail;
+      
+      document.getElementById('personnel-school-info').textContent = 
         `${appState.schoolName} • ${appState.schoolDistrict} • ${appState.auditDate}`;
-    
-    saveTempAudit();
-    showPage('personnel');
-});
+      
+      document.getElementById('manager-count').value = appState.managerCount || 0;
+      document.getElementById('teacher-count').value = appState.teacherCount || 0;
+      document.getElementById('officer-count').value = appState.officerCount || 0;
+      document.getElementById('servant-count').value = appState.servantCount || 0;
+      document.getElementById('worker-count').value = appState.workerCount || 0;
+      document.getElementById('typ-count').value = appState.typCount || 0;
+      document.getElementById('paid-teacher-count').value = appState.paidTeacherCount || 0;
+      document.getElementById('contract-count').value = appState.contractCount || 0;
+      document.getElementById('master-instructor-count').value = appState.masterInstructorCount || 0;
+      document.getElementById('disabled-count').value = appState.disabledCount || 0;
+      document.getElementById('exconvict-count').value = appState.exconvictCount || 0;
+      document.getElementById('chronic-count').value = appState.chronicCount || 0;
+      calculateTotalPersonnel();
 
-document.getElementById('back-to-home').addEventListener('click', () => {
-    saveTempAudit();
-    showPage('home');
-    switchTab('new');
-});
+      document.getElementById('normal-student-count').value = appState.normalStudentCount || 0;
+      document.getElementById('disabled-student-count').value = appState.disabledStudentCount || 0;
+      document.getElementById('inclusion-student-count').value = appState.inclusionStudentCount || 0;
+      document.getElementById('chronic-student-count').value = appState.chronicStudentCount || 0;
+      calculateTotalStudents();
+      
+      saveTempAudit();
+      showPage('personnel');
+    });
 
-document.getElementById('continue-to-audit').addEventListener('click', () => {
-    saveTempAudit();
-    showPage('audit');
-    renderCurrentCategory();
-});
+    document.getElementById('back-to-home').addEventListener('click', () => {
+      appState.managerCount = parseInt(document.getElementById('manager-count').value) || 0;
+      appState.teacherCount = parseInt(document.getElementById('teacher-count').value) || 0;
+      appState.officerCount = parseInt(document.getElementById('officer-count').value) || 0;
+      appState.servantCount = parseInt(document.getElementById('servant-count').value) || 0;
+      appState.workerCount = parseInt(document.getElementById('worker-count').value) || 0;
+      appState.typCount = parseInt(document.getElementById('typ-count').value) || 0;
+      appState.paidTeacherCount = parseInt(document.getElementById('paid-teacher-count').value) || 0;
+      appState.contractCount = parseInt(document.getElementById('contract-count').value) || 0;
+      appState.masterInstructorCount = parseInt(document.getElementById('master-instructor-count').value) || 0;
+      appState.disabledCount = parseInt(document.getElementById('disabled-count').value) || 0;
+      appState.exconvictCount = parseInt(document.getElementById('exconvict-count').value) || 0;
+      appState.chronicCount = parseInt(document.getElementById('chronic-count').value) || 0;
+      appState.totalPersonnel = parseInt(document.getElementById('total-personnel').value) || 0;
+      
+      appState.normalStudentCount = parseInt(document.getElementById('normal-student-count').value) || 0;
+      appState.disabledStudentCount = parseInt(document.getElementById('disabled-student-count').value) || 0;
+      appState.inclusionStudentCount = parseInt(document.getElementById('inclusion-student-count').value) || 0;
+      appState.chronicStudentCount = parseInt(document.getElementById('chronic-student-count').value) || 0;
+      appState.totalStudents = parseInt(document.getElementById('total-students').value) || 0;
+      
+      saveTempAudit();
+      showPage('home');
+      switchTab('new');
+    });
 
-document.getElementById('prev-category').addEventListener('click', goToPrevCategory);
-document.getElementById('next-category').addEventListener('click', goToNextCategory);
-document.getElementById('save-audit').addEventListener('click', saveAudit);
-document.getElementById('download-pdf').addEventListener('click', downloadPDF);
+    document.getElementById('continue-to-audit').addEventListener('click', () => {
+      appState.managerCount = parseInt(document.getElementById('manager-count').value) || 0;
+      appState.teacherCount = parseInt(document.getElementById('teacher-count').value) || 0;
+      appState.officerCount = parseInt(document.getElementById('officer-count').value) || 0;
+      appState.servantCount = parseInt(document.getElementById('servant-count').value) || 0;
+      appState.workerCount = parseInt(document.getElementById('worker-count').value) || 0;
+      appState.typCount = parseInt(document.getElementById('typ-count').value) || 0;
+      appState.paidTeacherCount = parseInt(document.getElementById('paid-teacher-count').value) || 0;
+      appState.contractCount = parseInt(document.getElementById('contract-count').value) || 0;
+      appState.masterInstructorCount = parseInt(document.getElementById('master-instructor-count').value) || 0;
+      appState.disabledCount = parseInt(document.getElementById('disabled-count').value) || 0;
+      appState.exconvictCount = parseInt(document.getElementById('exconvict-count').value) || 0;
+      appState.chronicCount = parseInt(document.getElementById('chronic-count').value) || 0;
+      appState.totalPersonnel = parseInt(document.getElementById('total-personnel').value) || 0;
+      
+      appState.normalStudentCount = parseInt(document.getElementById('normal-student-count').value) || 0;
+      appState.disabledStudentCount = parseInt(document.getElementById('disabled-student-count').value) || 0;
+      appState.inclusionStudentCount = parseInt(document.getElementById('inclusion-student-count').value) || 0;
+      appState.chronicStudentCount = parseInt(document.getElementById('chronic-student-count').value) || 0;
+      appState.totalStudents = parseInt(document.getElementById('total-students').value) || 0;
+      
+      const hasTemp = localStorage.getItem('isg_temp_audit');
+      if (!hasTemp || Object.keys(appState.answers).length === 0) {
+        appState.currentCategoryIndex = 0;
+        appState.editingAuditId = null;
+        appState.answers = {};
+        appState.photos = {};
+        
+        if (appState.previousDeficiencies.length > 0) {
+          appState.previousDeficiencies.forEach(def => {
+            appState.answers[def.code] = {
+              value: 'no',
+              dof: def.dof,
+              note: ''
+            };
+          });
+        }
+      }
+      
+      saveTempAudit();
+      showPage('audit');
+      renderCurrentCategory();
+    });
 
-function saveTempAudit() {
-    localStorage.setItem('isg_temp_audit', JSON.stringify(appState));
+    document.getElementById('prev-category').addEventListener('click', goToPrevCategory);
+    document.getElementById('next-category').addEventListener('click', goToNextCategory);
+
+    document.getElementById('back-to-audit').addEventListener('click', () => {
+      showPage('audit');
+    });
+
+    document.getElementById('save-audit').addEventListener('click', saveAudit);
+    document.getElementById('download-pdf').addEventListener('click', downloadPDF);
+
+    document.getElementById('camera-input').addEventListener('change', (e) => handlePhotoSelect(e.target.files[0]));
+    document.getElementById('gallery-input').addEventListener('change', (e) => handlePhotoSelect(e.target.files[0]));
+    document.getElementById('cancel-photo').addEventListener('click', closePhotoModal);
+    document.getElementById('save-photo').addEventListener('click', savePhotoFunc);
+
+    document.getElementById('add-other-dof').addEventListener('click', addOtherDof);
+    document.getElementById('other-dof-text').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        addOtherDof();
+      }
+    });
+
+    // Geçici denetimi kaydet
+    function saveTempAudit() {
+      const tempAudit = {
+        schoolCode: appState.schoolCode,
+        schoolName: appState.schoolName,
+        schoolDistrict: appState.schoolDistrict,
+        auditDate: appState.auditDate,
+        schoolAddress: appState.schoolAddress,
+        schoolScope: appState.schoolScope,
+        schoolHazardClass: appState.schoolHazardClass,
+        schoolPhone: appState.schoolPhone,
+        schoolEmail: appState.schoolEmail,
+        managerCount: appState.managerCount,
+        teacherCount: appState.teacherCount,
+        officerCount: appState.officerCount,
+        servantCount: appState.servantCount,
+        workerCount: appState.workerCount,
+        typCount: appState.typCount,
+        paidTeacherCount: appState.paidTeacherCount,
+        contractCount: appState.contractCount,
+        masterInstructorCount: appState.masterInstructorCount,
+        disabledCount: appState.disabledCount,
+        exconvictCount: appState.exconvictCount,
+        chronicCount: appState.chronicCount,
+        totalPersonnel: appState.totalPersonnel,
+        normalStudentCount: appState.normalStudentCount,
+        disabledStudentCount: appState.disabledStudentCount,
+        inclusionStudentCount: appState.inclusionStudentCount,
+        chronicStudentCount: appState.chronicStudentCount,
+        totalStudents: appState.totalStudents,
+        currentCategoryIndex: appState.currentCategoryIndex,
+        answers: appState.answers,
+        photos: appState.photos,
+        previousDeficiencies: appState.previousDeficiencies,
+        otherDeficiencies: appState.otherDeficiencies
+      };
+      localStorage.setItem('isg_temp_audit', JSON.stringify(tempAudit));
+    }
+
+    // Geçici denetimi yükle
+    function loadTempAudit() {
+      try {
+        const saved = localStorage.getItem('isg_temp_audit');
+        if (saved) {
+          const temp = JSON.parse(saved);
+          appState.schoolCode = temp.schoolCode || '';
+          appState.schoolName = temp.schoolName || '';
+          appState.schoolDistrict = temp.schoolDistrict || '';
+          appState.auditDate = temp.auditDate || '';
+          appState.schoolAddress = temp.schoolAddress || '';
+          appState.schoolScope = temp.schoolScope || '';
+          appState.schoolHazardClass = temp.schoolHazardClass || '';
+          appState.schoolPhone = temp.schoolPhone || '';
+          appState.schoolEmail = temp.schoolEmail || '';
+          appState.managerCount = temp.managerCount || 0;
+          appState.teacherCount = temp.teacherCount || 0;
+          appState.officerCount = temp.officerCount || 0;
+          appState.servantCount = temp.servantCount || 0;
+          appState.workerCount = temp.workerCount || 0;
+          appState.typCount = temp.typCount || 0;
+          appState.paidTeacherCount = temp.paidTeacherCount || 0;
+          appState.contractCount = temp.contractCount || 0;
+          appState.masterInstructorCount = temp.masterInstructorCount || 0;
+          appState.disabledCount = temp.disabledCount || 0;
+          appState.exconvictCount = temp.exconvictCount || 0;
+          appState.chronicCount = temp.chronicCount || 0;
+          appState.totalPersonnel = temp.totalPersonnel || 0;
+          appState.normalStudentCount = temp.normalStudentCount || 0;
+          appState.disabledStudentCount = temp.disabledStudentCount || 0;
+          appState.inclusionStudentCount = temp.inclusionStudentCount || 0;
+          appState.chronicStudentCount = temp.chronicStudentCount || 0;
+          appState.totalStudents = temp.totalStudents || 0;
+          appState.currentCategoryIndex = temp.currentCategoryIndex || 0;
+          appState.answers = temp.answers || {};
+          appState.photos = temp.photos || {};
+          appState.previousDeficiencies = temp.previousDeficiencies || [];
+          appState.otherDeficiencies = temp.otherDeficiencies || [];
+        }
+      } catch (e) {
+        console.error('Gecici denetim yuklenemedi:', e);
+      }
+    }
+
+    // Geçici denetimi temizle
+    function clearTempAudit() {
+      localStorage.removeItem('isg_temp_audit');
+    }
+
+    // Sayfa yüklendiğinde
+    document.addEventListener('DOMContentLoaded', () => {
+      loadAuditsFromStorage();
+      loadTempAudit();
+      
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('audit-date').value = today;
+    });
+
+
+async function submitAudit() {
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbysE9xtt1y_BelfH0yl_GI3-XuZ8HmS7Y9JfPTe0nVfPZIAuv9ZeIMMF_C0PJ52qvZO/exec";
+    const btn = document.getElementById('save-audit');
+    const originalText = btn.innerText;
+
+    // 1. Verileri senin orijinal yapından topla
+   const finalData = {
+    // ... diğer bilgiler ...
+    questions: Object.keys(answers).map(key => ({
+        id: key,
+        status: answers[key]
+    }))
+};
+
+    // Tüm radyo butonlarındaki cevapları topla
+    document.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
+        finalData.questions.push({
+            id: radio.name,
+            status: radio.value
+        });
+    });
+
+    if(!finalData.schoolName) {
+        alert("Lütfen okul adını doldurun!");
+        return;
+    }
+
+    btn.innerText = "⏳ Kaydediliyor...";
+    btn.disabled = true;
+
+    // 2. Google Script'e GÖNDER (GitHub uyumlu yöntem)
+    try {
+        await fetch(SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(finalData)
+        });
+        
+        alert("✅ Başarıyla kaydedildi!");
+        btn.innerText = originalText;
+        btn.disabled = false;
+        
+        // Formu temizle (senin orijinal fonksiyonun varsa çalışır)
+        if(typeof clearTempAudit === 'function') clearTempAudit();
+        location.reload(); 
+        
+    } catch (err) {
+        alert("Hata oluştu: " + err);
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
 }
 
-function loadTempAudit() {
-    const saved = localStorage.getItem('isg_temp_audit');
-    if (saved) Object.assign(appState, JSON.parse(saved));
-}
-
-function clearTempAudit() {
-    localStorage.removeItem('isg_temp_audit');
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    loadAuditsFromStorage();
-    loadTempAudit();
-    const today = new Date().toISOString().split('T')[0];
-    if(document.getElementById('audit-date')) document.getElementById('audit-date').value = today;
-});
-</script>
-</body>
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c79b84c11c6d5ff',t:'MTc3MDAzNTYzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
 
 
