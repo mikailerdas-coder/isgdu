@@ -1870,48 +1870,107 @@ const auditQuestions = {
     // Denetimi Kaydet
 
 
-
 async function saveAudit() {
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby3gFk9qaWedqODmRWxanB14TpEPU0xgL3kPkaIp0aRu_6uePBz8IB5zcThmW6HXo4v/exec";
-  const saveBtn = document.getElementById('save-audit');
-  
-  // Veri Paketini Hazırla
-  const auditData = {
-    school_district: appState.schoolDistrict,
-    school_name: appState.schoolName,
-    school_code: appState.schoolCode,
-    audit_date: appState.auditDate,
-    school_hazard_class: appState.schoolHazardClass,
-    total_personnel: appState.totalPersonnel,
-    total_students: appState.totalStudents
-  };
+    const saveBtn = document.getElementById('save-audit');
+    
+    // 1. Google Sheets URL'nizi buraya yapıştırın
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwn897MXz37WDOqavoT8KQYCNGefn5M_3BZeJ-A7RoqPerqG767gcbgikrVW5JFzt5r/exec";
 
-  saveBtn.disabled = true;
-  saveBtn.textContent = '⏳ Kaydediliyor...';
+    // 2. Eksiklikleri (Hayır denilenleri) filtrele ve liste haline getir
+    let deficienciesList = "";
+    let deficiencyCount = 0;
 
-  try {
-    // Önce Yerel Kayıt Yap (Mevcut kodunuzu burada çağırın)
-    saveAuditsToStorage(); 
-
-    // Google Sheets'e Gönder
-    await fetch(SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      cache: 'no-cache',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(auditData)
+    Object.keys(appState.answers).forEach(code => {
+        const answerData = appState.answers[code];
+        if (answerData && answerData.value === 'no') {
+            deficiencyCount++;
+            // Soru metnini bulmak için yardımcı fonksiyon (aşağıda tanımlı)
+            const question = findQuestionByCode(code); 
+            const questionText = question ? question.text : "Soru metni bulunamadı";
+            const dofText = answerData.observation || (question ? question.dof : "DÖF belirtilmedi");
+            
+            deficienciesList += `${deficiencyCount}- [${code}] ${questionText} | DÖF: ${dofText}\n`;
+        }
     });
 
-    alert("✅ Denetim başarıyla kaydedildi!");
-    location.reload(); 
-  } catch (error) {
-    alert("Bağlantı Hatası: " + error.message);
-  } finally {
-    saveBtn.disabled = false;
-    saveBtn.textContent = '💾 Denetimi Kaydet';
-  }
+    // 3. Veri Paketini Hazırla
+    const auditData = {
+        id: appState.editingAuditId || Date.now(),
+        timestamp: new Date().toLocaleString('tr-TR'),
+        school_name: appState.schoolName,
+        school_code: appState.schoolCode,
+        school_district: appState.schoolDistrict,
+        audit_date: appState.auditDate,
+        school_scope: appState.schoolScope,
+        school_hazard_class: appState.schoolHazardClass,
+        total_personnel: appState.totalPersonnel,
+        total_students: appState.totalStudents,
+        deficiencies: deficienciesList || "Eksiklik bulunmadı.",
+        deficiency_count: deficiencyCount,
+        status: 'completed',
+        created_at: new Date().toISOString()
+    };
+
+    if (!auditData.school_name) {
+        showToast("Lütfen okul adını doldurun!", "error");
+        return;
+    }
+
+    try {
+        saveBtn.disabled = true;
+        saveBtn.textContent = '⏳ Kaydediliyor...';
+
+        // --- A. YEREL KAYIT (Telefona Kayıt) ---
+        if (appState.editingAuditId) {
+            const index = appState.allAudits.findIndex(a => a.id === appState.editingAuditId);
+            if (index !== -1) appState.allAudits[index] = auditData;
+        } else {
+            appState.allAudits.push(auditData);
+        }
+        saveAuditsToStorage();
+        renderAuditHistory();
+
+        // --- B. BULUT KAYIT (Google Sheets) ---
+        // no-cors moduyla fetch kullanıyoruz
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            cache: 'no-cache',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(auditData)
+        });
+
+        showToast('✅ Denetim hem telefona hem Google Sheets\'e kaydedildi!');
+        
+        // Formu temizle ve yönlendir
+        appState.editingAuditId = null;
+        clearTempAudit();
+        
+        setTimeout(() => {
+            clearAllForm();
+            showPage('home');
+            switchTab('data');
+            saveBtn.disabled = false;
+            saveBtn.textContent = '💾 Denetimi Kaydet';
+        }, 1500);
+
+    } catch (error) {
+        console.error('Kayıt Hatası:', error);
+        showToast('Hata: ' + error.message, "error");
+        saveBtn.disabled = false;
+        saveBtn.textContent = '💾 Denetimi Kaydet';
+    }
 }
-   
+
+// YARDIMCI FONKSİYON: Soru kodundan sorunun detayını bulur
+function findQuestionByCode(code) {
+    if (typeof auditQuestions === 'undefined') return null;
+    for (let catKey in auditQuestions) {
+        const question = auditQuestions[catKey].questions.find(q => q.code === code);
+        if (question) return question;
+    }
+    return null;
+}
 
 
     // PDF İndir
@@ -2417,6 +2476,7 @@ async function submitAudit() {
   </script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c79b84c11c6d5ff',t:'MTc3MDAzNTYzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
 
 
