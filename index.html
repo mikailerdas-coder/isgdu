@@ -1869,14 +1869,17 @@ const auditQuestions = {
 
     // Denetimi Kaydet
 
-// Denetimi Kaydet
+// ==========================================
+// 1. DENETİMİ KAYDET FONKSİYONU
+// ==========================================
 async function saveAudit() {
     const saveBtn = document.getElementById('save-audit');
     if (!saveBtn) return;
 
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbznnjSUbn2WIOq4C8DCDSuo7O090Mp1ftdqzoOFFpYetciDvidWTY-w6nGu7o-cgOj0/exec";
+    // KENDİ SCRIPT URL'NİZ
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwnvTIrk1iIc8DKSjRrWy6qojmLhYos7ykkLd2BZ63nfxzyiuIOkKJhrJGnwVTNgJFG/exec";
 
-    // 1. Veri toplama ve Eksiklik kontrolü
+    // Eksiklikleri (Hayır cevaplarını) topla
     let deficienciesList = "";
     let deficiencyCount = 0;
 
@@ -1890,7 +1893,7 @@ async function saveAudit() {
         if (answerData && answerData.value === 'no') {
             deficiencyCount++;
             const question = findQuestionByCode(code); 
-            const questionText = question ? question.text : "Soru metni bulunamadı";
+            const questionText = question ? question.text : "Soru bulunamadı";
             const dofText = answerData.observation || (question ? question.dof : "DÖF belirtilmedi");
             deficienciesList += `${deficiencyCount}- [${code}] ${questionText} | DÖF: ${dofText}\n`;
         }
@@ -1917,7 +1920,7 @@ async function saveAudit() {
         saveBtn.disabled = true;
         saveBtn.textContent = '⏳ Kaydediliyor...';
 
-        // --- A. YEREL KAYIT ---
+        // A. YEREL KAYIT
         if (appState.editingAuditId) {
             const index = appState.allAudits.findIndex(a => a.id === appState.editingAuditId);
             if (index !== -1) appState.allAudits[index] = auditData;
@@ -1928,8 +1931,7 @@ async function saveAudit() {
         if (typeof saveAuditsToStorage === 'function') saveAuditsToStorage();
         if (typeof renderAuditHistory === 'function') renderAuditHistory();
 
-        // --- B. BULUT KAYIT (Google Sheets) ---
-        // Fetch işlemini await ile yapıyoruz ama hata fırlatmasını engellemek için try-catch içine alıyoruz
+        // B. GOOGLE SHEETS KAYIT
         try {
             await fetch(SCRIPT_URL, {
                 method: 'POST',
@@ -1939,10 +1941,10 @@ async function saveAudit() {
                 body: JSON.stringify(auditData)
             });
         } catch (e) {
-            console.warn("Google Sheets'e gönderilemedi, ancak yerel kayıt başarılı.");
+            console.warn("Google Sheets bağlantı hatası.");
         }
 
-        showToast('✅ İşlem Başarılı!');
+        showToast('✅ Kayıt Başarılı!');
         
         appState.editingAuditId = null;
         if (typeof clearTempAudit === 'function') clearTempAudit();
@@ -1957,14 +1959,25 @@ async function saveAudit() {
 
     } catch (error) {
         console.error('Kayıt Hatası:', error);
-        showToast('Kayıt Hatası: ' + error.message, "error");
+        showToast('Hata: ' + error.message, "error");
         saveBtn.disabled = false;
         saveBtn.textContent = '💾 Denetimi Kaydet';
     }
 }
 
+// Yardımcı Fonksiyon (Soru bulucu)
+function findQuestionByCode(code) {
+    if (typeof auditQuestions === 'undefined') return null;
+    for (let catKey in auditQuestions) {
+        const question = auditQuestions[catKey].questions.find(q => q.code === code);
+        if (question) return question;
+    }
+    return null;
+}
 
-    // PDF İndir
+// ==========================================
+// 2. PDF İNDİR FONKSİYONU
+// ==========================================
 async function downloadPDF() {
     const downloadBtn = document.getElementById('download-pdf');
     if (!downloadBtn) return;
@@ -1974,29 +1987,21 @@ async function downloadPDF() {
     downloadBtn.textContent = '⏳ PDF Hazırlanıyor...';
 
     try {
-        const jspdf = window.jspdf;
-        if (!jspdf) throw new Error("jsPDF kütüphanesi bulunamadı!");
-        
-        const { jsPDF } = jspdf;
+        const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
-        // --- YARDIMCI FONKSİYONLAR ---
         const formatDate = (dateStr) => {
             if (!dateStr) return '';
             const date = new Date(dateStr);
-            if (isNaN(date.getTime())) return dateStr;
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear();
-            return `${day}/${month}/${year}`;
+            return isNaN(date.getTime()) ? dateStr : date.toLocaleDateString('tr-TR');
         };
 
-        // --- 1. TÜRKÇE FONT YÜKLEME ---
+        // Türkçe Font Yükleme
         const fontUrl = "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf";
         const response = await fetch(fontUrl);
         const fontBlob = await response.blob();
-        const reader = new FileReader();
         const fontBase64 = await new Promise((resolve) => {
+            const reader = new FileReader();
             reader.onloadend = () => resolve(reader.result.split(',')[1]);
             reader.readAsDataURL(fontBlob);
         });
@@ -2005,163 +2010,92 @@ async function downloadPDF() {
         doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
         doc.setFont("Roboto");
 
-        // --- AYARLAR ---
         const greenFill = [22, 163, 74]; 
         const redFill = [185, 28, 28];
-        const rowHeight = 6; 
 
-        // --- GÜNCELLENMİŞ SÜTUN GENİŞLİKLERİ ---
-        const colStylesDenetim = {
-            0: { cellWidth: 10, halign: 'center' }, // Soru Kodu (10 mm yapıldı)
-            1: { cellWidth: 102 },                  // Soru Metni (Koddan artan 5mm buraya eklendi)
-            2: { cellWidth: 15, halign: 'center' }, // EVET
-            3: { cellWidth: 15, halign: 'center' }, // HAYIR
-            4: { cellWidth: 40 }                    // AÇIKLAMA (Sabit 40 mm)
-        };
-
-        // --- 2. ÜST BİLGİ (HEADER) ---
+        // Header Çizimi
         const drawHeader = (data) => {
-            const ilceAdi = (appState.schoolDistrict || "..........").toUpperCase();
             doc.autoTable({
                 startY: 10,
                 tableWidth: 182,
                 margin: { left: 14 },
                 theme: 'grid',
-                styles: { font: "Roboto", fontSize: 7, cellPadding: 1, valign: 'middle', textColor: [0, 0, 0], lineWidth: 0.2 },
+                styles: { font: "Roboto", fontSize: 7, cellPadding: 1, halign: 'center' },
                 body: [
                     [
-                        { content: 'İŞYERİ SAĞLIK VE\nGÜVENLİK BİRİMİ', rowSpan: 5, styles: { cellWidth: 30, fontStyle: 'bold', fontSize: 6, valign: 'bottom', halign: 'center', minCellHeight: 25 } },
-                        { content: `ANKARA İL MİLLİ EĞİTİM MÜDÜRLÜĞÜ\n${ilceAdi} İLÇE MİLLİ EĞİTİM MÜDÜRLÜĞÜ\nOKUL/KURUM İSG REHBERLİK, ÇALIŞMA ORTAMI GÖZETİM VE DENETLEME FORMU`, rowSpan: 5, styles: { cellWidth: 92, fontSize: 8, fontStyle: 'bold', halign: 'center' } },
-                        { content: ' Doküman No', styles: { cellWidth: 28, halign: 'left' } },
-                        { content: 'FRM.014', styles: { cellWidth: 32, halign: 'center' } }
+                        { content: 'İŞYERİ SAĞLIK VE GÜVENLİK BİRİMİ', rowSpan: 2, styles: { cellWidth: 30, fontSize: 6 } },
+                        { content: 'DENETLEME FORMU', rowSpan: 2, styles: { cellWidth: 92, fontSize: 10, fontStyle: 'bold' } },
+                        { content: 'Doküman No: FRM.014' },
                     ],
-                    [{ content: ' İlk Yayın Tarihi', styles: { halign: 'left' } }, { content: '30.10.2023', styles: { halign: 'center' } }],
-                    [{ content: ' Revizyon Tarihi', styles: { halign: 'left' } }, { content: '../../20..', styles: { halign: 'center' } }],
-                    [{ content: ' Revizyon No', styles: { halign: 'left' } }, { content: '0', styles: { halign: 'center' } }],
-                    [{ content: ' Sayfa No', styles: { halign: 'left' } }, { content: '' }] 
+                    [{ content: 'Sayfa No: ' + data.pageNumber }]
                 ],
             });
-            data.settings.margin.top = 38; 
         };
 
-        const formattedAuditDate = formatDate(appState.auditDate);
-
-        // --- 3. TABLOLAR ---
-
-        // Okul Bilgileri
+        // Okul Bilgileri Tablosu
         doc.autoTable({
-            startY: 38, 
-            head: [[
-                { content: 'OKUL/KURUM BİLGİLERİ', colSpan: 2, styles: { halign: 'left', valign: 'middle' } }, 
-                { content: `TARİH: ${formattedAuditDate}`, colSpan: 2, styles: { halign: 'right', valign: 'middle', cellPadding: { right: 20 } } } 
-            ]],
+            startY: 35,
+            head: [[{ content: 'OKUL BİLGİLERİ', colSpan: 4 }]],
             body: [
-                ['Adı', appState.schoolName || '', 'Tehlike Sınıfı', appState.schoolHazardClass || ''],
-                ['Kodu', appState.schoolCode || '', 'İşyeri Sicil No', appState.schoolRegistrationNumber || ''],
-                ['Adresi', appState.schoolAddress || '', 'Telefon', appState.schoolPhone || ''],
-                ['Kapsam', appState.schoolScope || '', 'E-Posta', appState.schoolEmail || '']
+                ['Okul Adı', appState.schoolName, 'Tarih', formatDate(appState.auditDate)],
+                ['Okul Kodu', appState.schoolCode, 'İlçe', appState.schoolDistrict]
             ],
             theme: 'grid',
-            styles: { font: "Roboto", fontSize: 8, cellPadding: 1.2, valign: 'middle', minCellHeight: rowHeight },
-            headStyles: { fillColor: greenFill, textColor: [255, 255, 255], fontStyle: 'bold' },
-            columnStyles: { 0: { cellWidth: 15, fontStyle: 'bold' }, 1: { cellWidth: 70 }, 2: { cellWidth: 31, fontStyle: 'bold' }, 3: { cellWidth: 66 } },
-            didDrawPage: drawHeader
-        });
-
-        // Personel Bilgileri
-        doc.autoTable({
-            startY: doc.lastAutoTable.finalY + 3,
-            head: [['PERSONEL TÜRÜ', 'Normal', 'Engelli', 'Eski Hükümlü', 'Kronik']],
-            body: [
-                ['Yönetici Sayısı', appState.managerCount || '0', '', '', ''],
-                ['Öğretmen Sayısı', appState.teacherCount || '0', '', '', ''],
-                ['Öğrenci Sayısı', appState.totalStudents || '0', appState.disabledStudentCount || '0', '', '']
-            ],
-            theme: 'grid',
-            styles: { font: "Roboto", fontSize: 8, valign: 'middle', minCellHeight: rowHeight, cellPadding: 1.2 },
+            styles: { font: "Roboto", fontSize: 8 },
             headStyles: { fillColor: greenFill },
             didDrawPage: drawHeader
         });
 
-        // Denetim Maddeleri (Kod: 10mm, Açıklama: 40mm)
-        let currentY = doc.lastAutoTable.finalY + 3;
-        let deficiencies = []; 
-        if (typeof categoryOrder !== 'undefined' && typeof auditQuestions !== 'undefined') {
-            for (const catKey of categoryOrder) {
+        // Denetim Maddeleri
+        let currentY = doc.lastAutoTable.finalY + 5;
+        let deficiencies = [];
+
+        if (typeof categoryOrder !== 'undefined') {
+            categoryOrder.forEach(catKey => {
                 const category = auditQuestions[catKey];
                 const rows = category.questions.map(q => {
-                    const ans = appState.answers[q.code] || { value: '', note: '', dof: '' };
-                    if (ans.value === 'no') deficiencies.push(`${ans.dof || 'Belirtilmedi'} (${q.code})`);
-                    return [q.code, q.text, ans.value === 'yes' ? 'X' : '', ans.value === 'no' ? 'X' : '', ans.note || ''];
+                    const ans = appState.answers[q.code] || { value: '' };
+                    if (ans.value === 'no') deficiencies.push(`[${q.code}] ${ans.observation || q.dof}`);
+                    return [q.code, q.text, ans.value === 'yes' ? 'X' : '', ans.value === 'no' ? 'X' : ''];
                 });
+
                 doc.autoTable({
                     startY: currentY,
-                    head: [[catKey, category.title, 'EVET', 'HAYIR', 'AÇIKLAMA']],
+                    head: [[catKey, category.title, 'E', 'H']],
                     body: rows,
                     theme: 'grid',
-                    styles: { font: "Roboto", fontSize: 7, valign: 'middle', minCellHeight: rowHeight, cellPadding: 1.2 },
+                    styles: { font: "Roboto", fontSize: 7 },
                     headStyles: { fillColor: greenFill },
-                    columnStyles: colStylesDenetim, 
-                    pageBreak: 'auto',
+                    columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 140 }, 2: { cellWidth: 10 }, 3: { cellWidth: 10 } },
                     didDrawPage: drawHeader
                 });
-                currentY = doc.lastAutoTable.finalY + 3;
-            }
+                currentY = doc.lastAutoTable.finalY + 5;
+            });
         }
 
-        // Gözlemler (Kırmızı Bölüm)
-        let finalDofRows = deficiencies.map((dofText, index) => [(index + 1).toString(), dofText]);
-        if (appState.otherDeficiencies && appState.otherDeficiencies.length > 0) {
-            appState.otherDeficiencies.forEach((other, i) => finalDofRows.push([(deficiencies.length + i + 1).toString(), other]));
-        }
-
+        // Eksiklikler Bölümü
         doc.autoTable({
-            startY: currentY + 3,
-            head: [[{ content: 'OKUL/KURUMDA GÖZLEMLER, EKSİKLİKLER, TESPİT, ÖNERİLER VE DEĞERLENDİRMELER', colSpan: 2 }]],
-            body: finalDofRows.length > 0 ? finalDofRows : [['-', 'Yapılan denetimde herhangi bir uygunsuzluk tespit edilmemiştir.']],
+            startY: currentY,
+            head: [['TESPİT EDİLEN EKSİKLİKLER VE ÖNERİLER']],
+            body: deficiencies.length > 0 ? deficiencies.map(d => [d]) : [['Eksiklik tespit edilmemiştir.']],
             theme: 'grid',
-            styles: { font: "Roboto", fontSize: 8, cellPadding: 1.2, valign: 'middle', minCellHeight: rowHeight },
-            headStyles: { fillColor: redFill, halign: 'center', fontStyle: 'bold' },
-            columnStyles: { 0: { cellWidth: 10, halign: 'center' } }, // Gözlem numarası kod sütunuyla aynı genişlikte
+            styles: { font: "Roboto", fontSize: 8 },
+            headStyles: { fillColor: redFill },
             didDrawPage: drawHeader
         });
 
-        // Onay Bölümü
-        doc.autoTable({
-            startY: doc.lastAutoTable.finalY + 5,
-            head: [[{content: 'ONAY', styles:{halign:'center'}}, {content: 'OKUL / KURUM', colSpan:2, styles:{halign:'center'}}, {content: 'İLÇE MİLLİ EĞİTİM MÜDÜRLÜĞÜ', colSpan:2, styles:{halign:'center'}}]],
-            body: [
-                ['UNVANI', 'Müdür Yard.', 'Okul Müdürü', 'İSG Büro Yön.', 'Şube Müdürü'],
-                ['İMZA', '', '', '', ''],
-                ['ADI SOYADI', appState.vicarName || '', appState.principalName || '', appState.inspectorName || '', appState.subManagerName || ''],
-                ['CEP TEL', '', '', '', '']
-            ],
-            theme: 'grid',
-            styles: { font: "Roboto", fontSize: 7, halign: 'center', valign: 'middle', minCellHeight: rowHeight, cellPadding: 1.2 },
-            headStyles: { fillColor: greenFill },
-            didDrawPage: drawHeader
-        });
-
-        // --- 4. SAYFA NUMARALANDIRMA ---
-        const totalPages = doc.internal.getNumberOfPages();
-        for (let i = 1; i <= totalPages; i++) {
-            doc.setPage(i);
-            doc.setFontSize(7);
-            doc.setTextColor(0, 0, 0);
-            doc.text(`${i} / ${totalPages}`, 180, 33.0, { align: 'center' }); 
-        }
-
-        doc.save(`ISG_Denetim_Raporu_${appState.schoolCode || 'Rapor'}.pdf`);
-        if (typeof showToast !== 'undefined') showToast('Rapor Başarıyla Hazırlandı! ✓');
+        doc.save(`${appState.schoolName || 'Denetim'}_Raporu.pdf`);
+        downloadBtn.textContent = originalText;
+        downloadBtn.disabled = false;
 
     } catch (error) {
         console.error('PDF Hatası:', error);
-        alert('Hata: ' + error.message);
-    } finally {
+        showToast("PDF Hatası: " + error.message, "error");
+        downloadBtn.textContent = '❌ Hata';
         downloadBtn.disabled = false;
-        downloadBtn.textContent = originalText;
     }
 }
+ 
 
     // Event Listeners
     document.getElementById('school-code').addEventListener('input', checkPreviousAudits);
@@ -2467,6 +2401,7 @@ async function submitAudit() {
   </script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c79b84c11c6d5ff',t:'MTc3MDAzNTYzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
 
 
