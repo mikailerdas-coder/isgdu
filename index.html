@@ -2151,9 +2151,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const today = new Date().toISOString().split('T')[0];
     if(document.getElementById('audit-date')) document.getElementById('audit-date').value = today;
 });
+
+// Apps Script'ten kopyaladığınız URL'yi buraya yapıştırın
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxX-4lMwOiZhkTDEAfWOpxM8KCKH8syXtQUly2QFj3VD8IdTTn53wq5bHi39OW1_Ns/exec";
+
+async function sendToSheet() {
+    // appState sizin index.txt dosyanızdaki tüm denetim verilerini tutan objedir
+    try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(appState)
+        });
+        
+        if (response.ok) {
+            alert("Veriler Google Sheet'e başarıyla aktarıldı!");
+        }
+    } catch (error) {
+        console.error("Hata:", error);
+        alert("Aktarım sırasında bir hata oluştu.");
+    }
+}
+   
 </script>
 </body>
 </html>
+
 
 
 
