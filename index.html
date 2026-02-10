@@ -19,7 +19,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <script>
-    // Manifest oluşturucu
+    // Manifest oluşturucu (Bu kısım senin kodunda eksikti)
     (function() {
       const manifest = {
         "name": "İSG Denetim Sistemi",
@@ -613,10 +613,49 @@ const auditQuestions = {
   K: {
     title: "GENEL FİZİKİ ŞARTLAR (Bahçe, Merdiven, Korkuluk, Çatı)",
     questions: [
-      { code: "K1", text: "Giriş Kapısı Güvenliği Sağlanmış mı? Ziyaretçi Kaydı Tutuluyor mu?", dof: "Girişlerde ziyaretçi kayıt sistemi kurulmalı ve çevre duvarı güvenliği artırılmalıdır." }
-      // Not: Mesajınızda K2-K43 devam ediyordu; burada kısaltmamak için orijinal listenin tamamını
-      // index.html içine eklemek gerekir. Cursor'a tek seferde çok büyük dosya basmamak için şimdilik
-      // örnek olarak bir madde bırakıldı.
+      { code: "K1", text: "Giriş Kapısı Güvenliği Sağlanmış mı? Ziyaretçi Kaydı Tutuluyor mu?", dof: "Girişlerde ziyaretçi kayıt sistemi kurulmalı ve çevre duvarı güvenliği artırılmalıdır." },
+      { code: "K2", text: "Bahçe Yaya ve Araç Girişleri Birbirinden Ayrılmış mı?", dof: "Bahçede araç yolu ve yaya yolu çizgilerle/bariyerlerle net şekilde ayrılmalıdır." },
+      { code: "K3", text: "Bahçe Kapısının Devrilme ve Sıkışmaya Karşı Kontrolü Yapılmış mı?", dof: "Bahçe kapılarının raydan çıkma veya devrilme riskine karşı emniyet stoperleri takılmalıdır." },
+      { code: "K4", text: "Bahçe İçinde Güvenli Park Alanı Mevcut mu?", dof: "Araçlar için belirlenmiş, yaya trafiğini etkilemeyen güvenli park alanları oluşturulmalıdır." },
+      { code: "K5", text: "Bahçe Duvarları ve Korkuluklar Güvenli mi?", dof: "Bahçe duvarları üzerindeki korkulukların kesici/yırttıcı özellikleri giderilmelidir." },
+      { code: "K6", text: "Bahçe Zeminindeki Çukur ve Engeller İçin Önlem Alınmış mı?", dof: "Bahçe zeminindeki tüm çukurlar kapatılmalı, zemin bozuklukları onarılmalıdır." },
+      { code: "K7", text: "Bahçe Duvar Ekleri Kesme ve Yıkılma Riskine Karşı Kontrol Edilmiş mi?", dof: "Yıkılma riski taşıyan duvar veya eklentiler için ivedilikle önlem alınmalıdır." },
+      { code: "K8", text: "Spor Direkleri (Basketbol, Kale vb.) Devrilmeye Karşı Sabitlenmiş mi?", dof: "Basketbol potaları ve kale direkleri devrilmeyecek şekilde yere sabitlenmelidir." },
+      { code: "K9", text: "Bahçe Çıkışları Doğrudan Güvenli Alana Açılıyor mu?", dof: "Bina çıkışlarının doğrudan caddeye değil, güvenli bahçe alanına açılması sağlanmalıdır." },
+      { code: "K10", text: "Şiddetli Rüzgâra Karşı (Çatı, Pano vb.) Önlemler Alınmış mı?", dof: "Çatı levhaları, tabelalar ve klimalar şiddetli rüzgâra karşı sabitlenmelidir." },
+      { code: "K11", text: "Su Kuyusu Varsa Güvenlik Kapağı ve Kilidi Mevcut mu?", dof: "Bahçedeki su kuyuları ve rögarlar kilitli ağır kapaklarla emniyete alınmalıdır." },
+      { code: "K12", text: "Bahçe Zemininde Açık Rögar veya Sivri Materyal Var mı?", dof: "Bahçe zemininde su birikintisi ve buzlanmaya karşı drenaj çalışmaları yapılmalıdır." },
+      { code: "K13", text: "Merdivenlerde Kaydırmaz Bant Uygulaması Yapılmış mı?", dof: "Merdiven basamaklarına aşınmaya dayanıklı kaydırmaz bantlar yapıştırılmalıdır." },
+      { code: "K14", text: "Merdiven Boşlukları (Güvenlik Filesi vb.) İçin Önlem Alınmış mı?", dof: "Merdiven boşluklarına yüksekten düşmeyi önleyici güvenlik fileleri veya korkuluklar monte edilmelidir." },
+      { code: "K15", text: "Engelli Erişimi (Rampa, Asansör vb.) Sağlanmış mı?", dof: "Engelli rampaları ve tuvaletleri standartlara (eğim ve genişlik) uygun hale getirilmelidir." },
+      { code: "K16", text: "Merdiven Basamakları Standart Ölçülere Uygun mu?", dof: "Merdiven basamak yükseklikleri ve genişlikleri tüm kullanıcılar için eşitlenmelidir." },
+      { code: "K17", text: "Merdiven Küpeşte Yüksekliği Standartlara Uygun mu?", dof: "Merdivenlerdeki korkuluklar sağlamlaştırılmalı ve uygun yüksekliğe getirilmelidir." },
+      { code: "K18", text: "Dört Basamaktan Fazla Olan Tüm Merdivenlerde Korkuluk Var mı?", dof: "Basamak sayısı 4’ten fazla olan tüm merdivenlerde tutamak (küpeşte) bulundurulmalıdır." },
+      { code: "K19", text: "Korkuluk Yüksekliği En Az 90 cm mi?", dof: "Korkuluk yüksekliğinin tüm alanlarda en az 90 cm olması sağlanmalıdır." },
+      { code: "K20", text: "Korkuluk Aralıkları Çocukların Düşmesini Engelleyecek Kadar Dar mı?", dof: "Korkuluk dikme aralıkları çocukların başının geçemeyeceği (max 10-12 cm) aralıkta olmalıdır." },
+      { code: "K21", text: "Korkulukların Üzerinde Kaymayı Engelleyecek Tedbir Alınmış mı?", dof: "Merdiven kenarları kaymaya veya takılmaya neden olmayacak şekilde düzenlenmelidir." },
+      { code: "K22", text: "Uygun Olmayan Eski Korkuluklar İçin İyileştirme Yapılmış mı?", dof: "Standart dışı olan tüm korkuluk sistemleri teknik rapor doğrultusunda yenilenmelidir." },
+      { code: "K23", text: "Rampaların Eğimi ve Korkulukları Tekerlekli Sandalyeye Uygun mu?", dof: "Rampaların zeminleri ıslakken kaymayacak malzeme ile kaplanmalıdır." },
+      { code: "K24", text: "Kimyasallar Kilitli ve Işık Almayan Depolarda mı Saklanıyor?", dof: "Temizlik kimyasalları kilitli dolaplarda, orijinal etiketli ambalajlarında saklanmalıdır." },
+      { code: "K25", text: "Sınıf Kapılarında Parmak Sıkışmasını Önleyici Aparat Var mı?", dof: "Kapılarda parmak sıkışmasını önleyici aparatlar (menteşe koruyucu) kullanılmalıdır." },
+      { code: "K26", text: "Sınıf Kapıları Dışarıya Açılıyor mu ve Önleri İşaretlenmiş mi?", dof: "Sınıf kapılarının açılma yönü koridor trafiğini engellemeyecek şekilde işaretlenmelidir." },
+      { code: "K27", text: "Pencerelerin Açılma Mesafesi (Düşmeyi Önleyecek Şekilde) Sınırlandırılmış mı?", dof: "Pencerelere belirli bir açıdan fazla açılmasını önleyen emniyet kilitleri takılmalıdır." },
+      { code: "K28", text: "Cam Kapı ve Bölmelerde Kırılmaya Karşı Güvenlik Filmi Var mı?", dof: "Alçak seviyedeki cam bölmeler, çarpma anında dağılmayan güvenlik filmi ile kaplanmalıdır." },
+      { code: "K29", text: "Islak Zeminlerde Kayma Riskine Karşı Uyarı Levhası Kullanılıyor mu?", dof: "Islak alan girişlerine Kaygan Zemin uyarı levhaları yerleştirilmelidir." },
+      { code: "K30", text: "Zeminlerdeki Kot Farkları Belirgin Hale Getirilmiş mi?", dof: "Zeminlerdeki ufak kot farkları sarı-siyah ikaz bantları ile belirginleştirilmelidir." },
+      { code: "K31", text: "Dolap, Kitaplık vb. Eşyalar Duvara Sabitlenmiş mi? (L-Braket ile)", dof: "Kitaplıklar, dolaplar ve ağır eşyalar devrilmeye karşı duvara sabitlenmelidir." },
+      { code: "K32", text: "Kalorifer Petekleri Keskin Köşelere Karşı Korunmuş mu?", dof: "Keskin köşeli kalorifer peteklerine koruyucu yumuşak kenarlıklar takılmalıdır." },
+      { code: "K33", text: "Fiziki Alanların Genel Temizliği ve Hijyeni Uygun mu?", dof: "Tuvaletler ve ortak alanlar için günlük temizlik takip çizelgeleri uygulanmalıdır." },
+      { code: "K34", text: "Çatı Kapısı Kilitli mi? Erişimi Engellenmiş mi?", dof: "Çatı çıkış kapıları her zaman kilitli ve sadece yetkili erişimine açık tutulmalıdır." },
+      { code: "K35", text: "Çatının Depo Olarak Kullanılması Engellenmiş mi?", dof: "Çatı araları yanıcı malzeme ve atıklardan tamamen arındırılmalıdır." },
+      { code: "K36", text: "Makine ve Araçların Kullanma Talimatları Üzerinde mi?", dof: "Kullanılan her türlü makine için kısa ve öz Kullanım Talimatı asılmalıdır." },
+      { code: "K37", text: "Özel Amaçlı İş Ekipmanlarının Talimatları Mevcut mu?", dof: "Özel ekipmanlar (asansör, jeneratör vb.) için acil müdahale talimatları hazırlanmalıdır." },
+      { code: "K38", text: "Güvenlik Kameraları Tüm Kör Noktaları Görüyor mu?", dof: "Kamera sisteminin kör noktaları belirlenerek güvenlik ağı genişletilmelidir." },
+      { code: "K39", text: "Tüm Odalar ve Bölümler Tanımlayıcı Levhalarla İsimlendirilmiş mi?", dof: "Tüm birimlerin kapı isimlikleri ve yönlendirme tabelaları standart hale getirilmelidir." },
+      { code: "K40", text: "Tuvaletlerin Fiziki Ortamı (Aydınlatma, Havalandırma vb.) Uygun mu?", dof: "Tuvaletlerde koku ve nemi önlemek için havalandırma sistemleri iyileştirilmelidir." },
+      { code: "K41", text: "Tuvaletler Hijyen Kurallarına Uygun mu?", dof: "Tuvalet zeminleri dezenfektanlarla düzenli olarak temizlenmelidir." },
+      { code: "K42", text: "Tuvaletlerde Temizlik Malzemeleri Güvenli Yerlerde mi Tutuluyor?", dof: "Temizlik maddeleri tuvaletlerde açıkta değil, kapalı dolaplarda tutulmalıdır." },
+      { code: "K43", text: "Tuvalet Temizlik Çizelgeleri Günlük Olarak İşleniyor mu?", dof: "Temizlik sonrası ıslak zeminler kurulanmalı ve gerekli ikazlar konulmalıdır." }
     ]
   },
   L: {
@@ -923,10 +962,182 @@ const auditQuestions = {
       }).join('');
     }
 
+    function loadAudit(auditId) {
+      const audit = appState.allAudits.find(a => a.id === auditId);
+      if (!audit) return;
+
+      document.getElementById('school-code').value = audit.school_code;
+      document.getElementById('school-name').value = audit.school_name;
+      document.getElementById('school-district').value = audit.school_district || '';
+      document.getElementById('audit-date').value = audit.audit_date;
+      document.getElementById('school-address').value = audit.school_address || '';
+      document.getElementById('school-scope').value = audit.school_scope || '';
+      document.getElementById('school-hazard-class').value = audit.school_hazard_class || '';
+      document.getElementById('school-phone').value = audit.school_phone || '';
+      document.getElementById('school-email').value = audit.school_email || '';
+
+      document.getElementById('manager-count').value = audit.manager_count || 0;
+      document.getElementById('teacher-count').value = audit.teacher_count || 0;
+      document.getElementById('officer-count').value = audit.officer_count || 0;
+      document.getElementById('servant-count').value = audit.servant_count || 0;
+      document.getElementById('worker-count').value = audit.worker_count || 0;
+      document.getElementById('typ-count').value = audit.typ_count || 0;
+      document.getElementById('paid-teacher-count').value = audit.paid_teacher_count || 0;
+      document.getElementById('contract-count').value = audit.contract_count || 0;
+      document.getElementById('master-instructor-count').value = audit.master_instructor_count || 0;
+      document.getElementById('disabled-count').value = audit.disabled_count || 0;
+      document.getElementById('exconvict-count').value = audit.exconvict_count || 0;
+      document.getElementById('chronic-count').value = audit.chronic_count || 0;
+      calculateTotalPersonnel();
+
+      document.getElementById('normal-student-count').value = audit.normal_student_count || 0;
+      document.getElementById('disabled-student-count').value = audit.disabled_student_count || 0;
+      document.getElementById('inclusion-student-count').value = audit.inclusion_student_count || 0;
+      document.getElementById('chronic-student-count').value = audit.chronic_student_count || 0;
+      calculateTotalStudents();
+
+      appState.schoolCode = audit.school_code;
+      appState.schoolName = audit.school_name;
+      appState.schoolDistrict = audit.school_district || '';
+      appState.auditDate = audit.audit_date;
+      appState.schoolAddress = audit.school_address || '';
+      appState.schoolScope = audit.school_scope || '';
+      appState.schoolHazardClass = audit.school_hazard_class || '';
+      appState.schoolPhone = audit.school_phone || '';
+      appState.schoolEmail = audit.school_email || '';
+      appState.managerCount = audit.manager_count || 0;
+      appState.teacherCount = audit.teacher_count || 0;
+      appState.officerCount = audit.officer_count || 0;
+      appState.servantCount = audit.servant_count || 0;
+      appState.workerCount = audit.worker_count || 0;
+      appState.typCount = audit.typ_count || 0;
+      appState.paidTeacherCount = audit.paid_teacher_count || 0;
+      appState.contractCount = audit.contract_count || 0;
+      appState.masterInstructorCount = audit.master_instructor_count || 0;
+      appState.disabledCount = audit.disabled_count || 0;
+      appState.exconvictCount = audit.exconvict_count || 0;
+      appState.chronicCount = audit.chronic_count || 0;
+      appState.totalPersonnel = audit.total_personnel || 0;
+      appState.normalStudentCount = audit.normal_student_count || 0;
+      appState.disabledStudentCount = audit.disabled_student_count || 0;
+      appState.inclusionStudentCount = audit.inclusion_student_count || 0;
+      appState.chronicStudentCount = audit.chronic_student_count || 0;
+      appState.totalStudents = audit.total_students || 0;
+      appState.answers = audit.answers || {};
+      appState.photos = audit.photos || {};
+      appState.editingAuditId = auditId;
+      appState.previousDeficiencies = audit.previous_deficiencies || [];
+      appState.otherDeficiencies = audit.other_deficiencies || [];
+    }
+
     function viewAuditDetails(auditId) {
       const audit = appState.allAudits.find(a => a.id === auditId);
       if (!audit) return;
-      // ... (orijinal detay modal kodunuz burada devam ediyordu)
+
+      const deficiencies = Object.entries(audit.answers || {})
+        .filter(([code, answer]) => answer.value === 'no')
+        .map(([code, answer]) => ({
+          code,
+          dof: answer.dof,
+          note: answer.note,
+          photo: (audit.photos || {})[code]
+        }));
+
+      const yesCount = Object.values(audit.answers || {}).filter(a => a.value === 'yes').length;
+      const noCount = deficiencies.length;
+      const naCount = Object.values(audit.answers || {}).filter(a => a.value === 'na').length;
+
+      const detailContent = document.getElementById('detail-content');
+      detailContent.innerHTML = `
+        <div class="bg-white rounded-xl p-4 border">
+          <h3 class="text-lg font-bold text-gray-800 mb-3">📋 Denetim Bilgileri</h3>
+          <div class="grid grid-cols-2 gap-3 text-sm">
+            <div><span class="text-gray-500">Okul:</span> <strong>${audit.school_name}</strong></div>
+            <div><span class="text-gray-500">Kod:</span> <strong>${audit.school_code}</strong></div>
+            <div><span class="text-gray-500">İlçe:</span> <strong>${audit.school_district || '-'}</strong></div>
+            <div><span class="text-gray-500">Tarih:</span> <strong>${audit.audit_date}</strong></div>
+            <div class="col-span-2"><span class="text-gray-500">Adres:</span> <strong>${audit.school_address || '-'}</strong></div>
+            <div><span class="text-gray-500">Kapsam:</span> <strong>${audit.school_scope || '-'}</strong></div>
+            <div><span class="text-gray-500">Tehlike Sınıfı:</span> <strong>${audit.school_hazard_class || '-'}</strong></div>
+            <div><span class="text-gray-500">Telefon:</span> <strong>${audit.school_phone || '-'}</strong></div>
+            <div><span class="text-gray-500">E-Posta:</span> <strong>${audit.school_email || '-'}</strong></div>
+            <div><span class="text-gray-500">Toplam Personel:</span> <strong>${audit.total_personnel || 0}</strong></div>
+            <div><span class="text-gray-500">Toplam Öğrenci:</span> <strong>${audit.total_students || 0}</strong></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div class="bg-green-50 border border-green-200 rounded-xl p-3 text-center">
+            <div class="text-xl font-bold text-green-600">${yesCount}</div>
+            <div class="text-xs text-green-700">Evet</div>
+          </div>
+          <div class="bg-red-50 border border-red-200 rounded-xl p-3 text-center">
+            <div class="text-xl font-bold text-red-600">${noCount}</div>
+            <div class="text-xs text-red-700">Hayır</div>
+          </div>
+          <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-center">
+            <div class="text-xl font-bold text-yellow-600">${naCount}</div>
+            <div class="text-xs text-yellow-700">Gerekli Değil</div>
+          </div>
+        </div>
+
+        <div>
+          ${deficiencies.length > 0 || (audit.other_deficiencies || []).length > 0 ? `
+            <div class="bg-white rounded-xl border p-4">
+              <h3 class="text-lg font-bold text-red-600 mb-3">⚠️ Düzeltici Önleyici Faaliyetler (${deficiencies.length + (audit.other_deficiencies || []).length})</h3>
+              <div class="space-y-3">
+                ${deficiencies.map(d => {
+                  const isPrevious = (audit.previous_deficiencies || []).find(pd => pd.code === d.code && !pd.resolved);
+                  return `
+                    <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <div class="flex items-start gap-2 mb-2">
+                        <span class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">${d.code}</span>
+                        ${isPrevious ? '<span class="bg-orange-500 text-white text-xs px-2 py-1 rounded">(Devam Eden)</span>' : ''}
+                      </div>
+                      <p class="text-red-800 font-medium mb-1">${d.dof}</p>
+                      ${d.note ? `<p class="text-red-600 text-sm">Not: ${d.note}</p>` : ''}
+                      ${d.photo ? `<img src="${d.photo}" alt="Deficiency photo" loading="lazy" class="w-full h-32 object-cover rounded-lg mt-2">` : ''}
+                    </div>
+                  `;
+                }).join('')}
+                ${(audit.other_deficiencies || []).length > 0 ? `
+                  <div class="border-t-2 border-purple-300 pt-3 mt-3">
+                    <h4 class="text-sm font-bold text-purple-700 mb-2">📝 Diğer DÖF (${(audit.other_deficiencies || []).length})</h4>
+                    ${(audit.other_deficiencies || []).map((dof, idx) => `
+                      <div class="p-3 bg-purple-50 border border-purple-200 rounded-lg mb-2">
+                        <div class="flex items-start gap-2 mb-2">
+                          <span class="bg-purple-500 text-white text-xs font-bold px-2 py-1 rounded">DİĞER ${idx + 1}</span>
+                        </div>
+                        <p class="text-purple-900 font-medium">${dof}</p>
+                      </div>
+                    `).join('')}
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          ` : `
+            <div class="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
+              <div class="text-4xl mb-2">✅</div>
+              <h3 class="text-lg font-bold text-green-700">Tebrikler!</h3>
+              <p class="text-green-600">Tüm maddeler uygun bulunmuştur.</p>
+            </div>
+          `}
+        </div>
+      `;
+
+      const detailActions = document.getElementById('detail-actions-modal');
+      detailActions.innerHTML = `
+        <button onclick="editAudit('${auditId}')" class="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-semibold rounded-xl hover:shadow-lg transition">
+          ✏️ Denetimi Düzenle
+        </button>
+        <button onclick="downloadAuditPDF('${auditId}')" class="w-full py-3 bg-gradient-to-r from-green-500 to-green-700 text-white font-semibold rounded-xl hover:shadow-lg transition">
+          📄 PDF İndir
+        </button>
+        <button onclick="deleteAudit('${auditId}')" class="w-full py-3 bg-gradient-to-r from-red-500 to-red-700 text-white font-semibold rounded-xl hover:shadow-lg transition">
+          🗑️ Denetimi Sil
+        </button>
+      `;
+
       document.getElementById('detail-modal').classList.remove('hidden');
     }
 
@@ -936,7 +1147,6 @@ const auditQuestions = {
 
     function editAudit(auditId) {
       closeDetailModal();
-      // loadAudit fonksiyonu orijinal kodunuzda vardı; burada da aynı şekilde kalmalı
       loadAudit(auditId);
       switchTab('new');
     }
@@ -956,9 +1166,30 @@ const auditQuestions = {
       }
       
       appState.allAudits = appState.allAudits.filter(a => a.id !== auditId);
-      saveAuditsToStorage();
+      sToStorage();
       renderAuditHistory();
       renderStatistics();
+      showToast('Denetim silindi');
+    }
+
+    function deleteAudit(auditId) {
+      const deleteBtn = event.target;
+      
+      if (deleteBtn.textContent.includes('Denetimi Sil')) {
+        deleteBtn.textContent = '⚠️ Silmek için tekrar tıklayın';
+        deleteBtn.className = 'w-full py-3 bg-gradient-to-r from-orange-500 to-orange-700 text-white font-semibold rounded-xl hover:shadow-lg transition';
+        
+        setTimeout(() => {
+          deleteBtn.textContent = '🗑️ Denetimi Sil';
+          deleteBtn.className = 'w-full py-3 bg-gradient-to-r from-red-500 to-red-700 text-white font-semibold rounded-xl hover:shadow-lg transition';
+        }, 3000);
+        return;
+      }
+      
+      appState.allAudits = appState.allAudits.filter(a => a.id !== auditId);
+      sToStorage();
+      renderAuditHistory();
+      closeDetailModal();
       showToast('Denetim silindi');
     }
 
@@ -978,6 +1209,9 @@ const auditQuestions = {
 
     // Sayfa Göster
     function showPage(page) {
+      const existingWarnings = document.querySelectorAll('.unanswered-warning');
+      existingWarnings.forEach(w => w.remove());
+      
       document.getElementById('home-page').classList.add('hidden');
       document.getElementById('personnel-page').classList.add('hidden');
       document.getElementById('audit-page').classList.add('hidden');
@@ -985,6 +1219,15 @@ const auditQuestions = {
       
       document.getElementById(`${page}-page`).classList.remove('hidden');
       appState.currentPage = page;
+      
+      if (page === 'audit') {
+        setTimeout(() => {
+          const auditPage = document.getElementById('audit-page');
+          auditPage.scrollTop = 0;
+        }, 50);
+      } else {
+        window.scrollTo(0, 0);
+      }
     }
 
     // Personel Sayısı Hesaplama
@@ -1007,7 +1250,6 @@ const auditQuestions = {
                     disabledCount + exconvictCount + chronicCount;
 
       document.getElementById('total-personnel').value = total;
-      appState.totalPersonnel = total;
     }
 
     // Öğrenci Sayısı Hesaplama
@@ -1020,36 +1262,615 @@ const auditQuestions = {
       const total = normalCount + disabledCount + inclusionCount + chronicCount;
 
       document.getElementById('total-students').value = total;
-      appState.totalStudents = total;
     }
 
-    // (Not: Orijinal kodunuzdaki renderCurrentCategory / setAnswer / foto modal vb. fonksiyonlar aynı şekilde
-    // burada olmalı. Tek dosyaya sığdırırken, sizin mesajınız zaten limitlere dayandığı için bu kısım kısaltıldı.)
+    // Kategori Render Et
+    function renderCurrentCategory() {
+      const existingWarnings = document.querySelectorAll('.unanswered-warning');
+      existingWarnings.forEach(w => w.remove());
+      
+      const catKey = categoryOrder[appState.currentCategoryIndex];
+      const category = auditQuestions[catKey];
+      
+      document.getElementById('category-title').textContent = category.title;
+      document.getElementById('school-info-display').textContent = 
+        `${appState.schoolName} • ${appState.schoolDistrict} • ${appState.auditDate}`;
 
-    function saveTempAudit() {
-      localStorage.setItem('isg_temp_audit', JSON.stringify(appState));
+      let totalYesCount = 0, totalNoCount = 0, totalNaCount = 0;
+      Object.values(appState.answers).forEach(answer => {
+        if (answer.value === 'yes') totalYesCount++;
+        else if (answer.value === 'no') totalNoCount++;
+        else if (answer.value === 'na') totalNaCount++;
+      });
+
+      const statsContainer = document.getElementById('total-stats');
+      statsContainer.innerHTML = `
+        <div class="bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-center">
+          <div class="text-sm font-bold text-green-600">${totalYesCount}</div>
+          <div class="text-xs text-green-700">Evet</div>
+        </div>
+        <div class="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-center">
+          <div class="text-sm font-bold text-red-600">${totalNoCount}</div>
+          <div class="text-xs text-red-700">Hayır</div>
+        </div>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2 text-center">
+          <div class="text-sm font-bold text-yellow-600">${totalNaCount}</div>
+          <div class="text-xs text-yellow-700">Gerekli Değil</div>
+        </div>
+      `;
+
+      const container = document.getElementById('questions-container');
+      container.innerHTML = '';
+
+      category.questions.forEach((q, idx) => {
+        const answer = appState.answers[q.code] || {};
+        const hasPreviousDof = appState.previousDeficiencies.find(d => d.code === q.code && !d.resolved);
+        
+        if (hasPreviousDof && !answer.value) {
+          appState.answers[q.code] = {
+            value: 'no',
+            dof: hasPreviousDof.dof || q.dof,
+            note: hasPreviousDof.note || '',
+            fromPreviousAudit: true
+          };
+          if (hasPreviousDof.photo) {
+            appState.photos[q.code] = hasPreviousDof.photo;
+          }
+        }
+        
+        const currentAnswer = appState.answers[q.code] || {};
+        
+        const questionCard = document.createElement('div');
+        let cardClasses = 'question-card p-4';
+        if (currentAnswer.value === 'yes') cardClasses += ' answer-yes';
+        else if (currentAnswer.value === 'no') cardClasses += ' answer-no';
+        else if (currentAnswer.value === 'na') cardClasses += ' answer-na';
+        questionCard.className = cardClasses;
+        questionCard.innerHTML = `
+          ${hasPreviousDof ? `
+            <div class="text-white text-xs font-medium px-3 py-1 rounded-full inline-block mb-2 border-4 border-red-400" style="background: linear-gradient(135deg, #fca5a5, #ef4444);">
+              ⚠️ Önceki denetimden devam eden eksiklik
+            </div>
+          ` : ''}
+          <div class="mb-3">
+            <p class="text-gray-800 font-medium text-lg">${q.code}. ${q.text}</p>
+          </div>
+          
+          <div class="flex gap-2 mb-3">
+            <button class="btn-answer btn-yes flex-1 py-2 rounded-lg font-medium ${currentAnswer.value === 'yes' ? 'selected' : ''}" 
+                    onclick="setAnswer('${q.code}', 'yes', '${q.dof.replace(/'/g, "\\'")}')">
+              ✓ Evet
+            </button>
+            <button class="btn-answer btn-no flex-1 py-2 rounded-lg font-medium ${currentAnswer.value === 'no' ? 'selected' : ''}"
+                    onclick="setAnswer('${q.code}', 'no', '${q.dof.replace(/'/g, "\\'")}')">
+              ✗ Hayır
+            </button>
+            <button class="btn-answer btn-na flex-1 py-2 rounded-lg font-medium ${currentAnswer.value === 'na' ? 'selected' : ''}"
+                    onclick="setAnswer('${q.code}', 'na', '${q.dof.replace(/'/g, "\\'")}')">
+              ◯ Gerekli Değil
+            </button>
+          </div>
+          
+          <div id="extra-${q.code}" class="${currentAnswer.value ? '' : 'hidden'}">
+            ${currentAnswer.value === 'no' ? `
+              <div class="mb-3">
+                <label for="dof-${q.code}" class="block text-sm font-medium text-gray-600 mb-1">DÖF Metni</label>
+                <div class="flex gap-2">
+                  <input type="text" id="dof-${q.code}" value="${currentAnswer.dof || q.dof}" 
+                         class="flex-1 px-3 py-2 border border-red-200 rounded-lg text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                         oninput="markDofEdited('${q.code}')">
+                  <button id="save-dof-${q.code}" class="hidden px-3 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition"
+                          onclick="saveDof('${q.code}')">
+                    Kaydet
+                  </button>
+                </div>
+              </div>
+              <button class="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition mb-3"
+                      onclick="openPhotoModal('${q.code}')">
+                📷 Fotoğraf Çek / Resim Yükle
+              </button>
+              ${appState.photos[q.code] ? `
+                <div class="mb-3 relative">
+                  <img src="${appState.photos[q.code]}" alt="Question photo" loading="lazy" class="w-full h-32 object-cover rounded-lg">
+                  <button onclick="removePhoto('${q.code}')" 
+                          class="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full hover:bg-red-600 transition shadow-lg font-bold">
+                    ✕
+                  </button>
+                </div>
+              ` : ''}
+            ` : ''}
+            
+            <div>
+              <label for="note-${q.code}" class="block text-sm font-medium text-gray-600 mb-1">Açıklama (max 20 karakter)</label>
+              <input type="text" id="note-${q.code}" 
+                     value="${currentAnswer.note || (currentAnswer.value === 'na' ? 'Gerekli Değil' : '')}" 
+                     maxlength="20"
+                     class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                     placeholder="Açıklama ekleyin..."
+                     onchange="saveNote('${q.code}')">
+            </div>
+          </div>
+        `;
+        
+        container.appendChild(questionCard);
+      });
+
+      updateProgress();
+      updateNavButtons();
     }
 
-    function loadTempAudit() {
-      const saved = localStorage.getItem('isg_temp_audit');
-      if (saved) Object.assign(appState, JSON.parse(saved));
-    }
+    // Cevap Kaydet
+    function setAnswer(code, value, dof) {
+      const prevAnswer = appState.answers[code] || {};
+      
+      appState.answers[code] = {
+        value: value,
+        dof: value === 'no' ? (prevAnswer.dof || dof) : '',
+        note: value === 'na' ? 'Gerekli Değil' : ''
+      };
 
-    function clearTempAudit() {
-      localStorage.removeItem('isg_temp_audit');
-    }
-
-    function findQuestionByCode(code) {
-      if (typeof auditQuestions === 'undefined') return null;
-      for (let catKey in auditQuestions) {
-        const question = auditQuestions[catKey].questions.find(q => q.code === code);
-        if (question) return question;
+      const prevDef = appState.previousDeficiencies.find(d => d.code === code);
+      if (prevDef && value === 'yes') {
+        prevDef.resolved = true;
       }
-      return null;
+
+      saveTempAudit();
+      renderCurrentCategory();
     }
+
+    // DÖF Düzenleme
+    function markDofEdited(code) {
+      document.getElementById(`save-dof-${code}`).classList.remove('hidden');
+    }
+
+    function saveDof(code) {
+      const dofInput = document.getElementById(`dof-${code}`);
+      if (appState.answers[code]) {
+        appState.answers[code].dof = dofInput.value;
+      }
+      document.getElementById(`save-dof-${code}`).classList.add('hidden');
+      saveTempAudit();
+      showToast('DÖF metni kaydedildi');
+    }
+
+    // Not Kaydet
+    function saveNote(code) {
+      const noteInput = document.getElementById(`note-${code}`);
+      if (appState.answers[code]) {
+        let note = noteInput.value;
+        if (appState.answers[code].value === 'na' && note && !note.startsWith('Gerekli Değil')) {
+          note = 'Gerekli Değil, ' + note;
+          noteInput.value = note.substring(0, 20);
+        }
+        appState.answers[code].note = noteInput.value;
+      }
+      saveTempAudit();
+    }
+
+    // Fotoğraf İşlemleri
+    function openPhotoModal(code) {
+      appState.currentPhotoQuestion = code;
+      document.getElementById('photo-modal').classList.remove('hidden');
+      document.getElementById('photo-preview-container').classList.add('hidden');
+    }
+
+    function closePhotoModal() {
+      document.getElementById('photo-modal').classList.add('hidden');
+      appState.currentPhotoQuestion = null;
+    }
+
+    function handlePhotoSelect(file) {
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          const maxWidth = 600;
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.4);
+          
+          if (compressedDataUrl.length > 150000) {
+            const smallerWidth = 500;
+            const smallerHeight = (height * smallerWidth) / width;
+            canvas.width = smallerWidth;
+            canvas.height = smallerHeight;
+            ctx.drawImage(img, 0, 0, smallerWidth, smallerHeight);
+            const finalDataUrl = canvas.toDataURL('image/jpeg', 0.3);
+            document.getElementById('photo-preview').src = finalDataUrl;
+          } else {
+            document.getElementById('photo-preview').src = compressedDataUrl;
+          }
+          
+          document.getElementById('photo-preview-container').classList.remove('hidden');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function savePhotoFunc() {
+      const preview = document.getElementById('photo-preview');
+      if (preview.src && appState.currentPhotoQuestion) {
+        appState.photos[appState.currentPhotoQuestion] = preview.src;
+        saveTempAudit();
+        showToast('Fotoğraf kaydedildi');
+        closePhotoModal();
+        renderCurrentCategory();
+      }
+    }
+
+    function removePhoto(code) {
+      delete appState.photos[code];
+      saveTempAudit();
+      renderCurrentCategory();
+    }
+
+    // Navigasyon
+    function updateNavButtons() {
+      const prevBtn = document.getElementById('prev-category');
+      prevBtn.disabled = false;
+      
+      const isLastCategory = appState.currentCategoryIndex === categoryOrder.length - 1;
+      const nextBtn = document.getElementById('next-category');
+      nextBtn.textContent = isLastCategory ? 'Raporu Önizle →' : 'Sonraki →';
+    }
+
+    function goToPrevCategory() {
+      if (appState.currentCategoryIndex > 0) {
+        appState.currentCategoryIndex--;
+        saveTempAudit();
+        renderCurrentCategory();
+        setTimeout(() => {
+          const auditPage = document.getElementById('audit-page');
+          auditPage.scrollTop = 0;
+        }, 50);
+      } else {
+        saveTempAudit();
+        showPage('personnel');
+      }
+    }
+
+    function goToNextCategory() {
+      const catKey = categoryOrder[appState.currentCategoryIndex];
+      const category = auditQuestions[catKey];
+      
+      const unansweredQuestion = category.questions.find(q => !appState.answers[q.code] || !appState.answers[q.code].value);
+      
+      if (unansweredQuestion) {
+        const existingWarnings = document.querySelectorAll('.unanswered-warning');
+        existingWarnings.forEach(w => w.remove());
+        
+        setTimeout(() => {
+          const questionElements = document.querySelectorAll('.question-card');
+          const questionIndex = category.questions.findIndex(q => q.code === unansweredQuestion.code);
+          if (questionElements[questionIndex]) {
+            questionElements[questionIndex].scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center' 
+            });
+            
+            const warning = document.createElement('div');
+            warning.className = 'unanswered-warning';
+            warning.textContent = '⚠️ Lütfen tüm soruları cevaplayın';
+            
+            const cardParent = questionElements[questionIndex].parentElement;
+            const originalPosition = cardParent.style.position;
+            cardParent.style.position = 'relative';
+            
+            warning.style.top = (questionElements[questionIndex].offsetTop - 2 - 48) + 'px';
+            cardParent.appendChild(warning);
+            
+            setTimeout(() => {
+              warning.remove();
+              cardParent.style.position = originalPosition;
+            }, 3000);
+            
+            questionElements[questionIndex].classList.add('blink-border');
+            setTimeout(() => {
+              questionElements[questionIndex].classList.remove('blink-border');
+            }, 2000);
+          }
+        }, 100);
+        return;
+      }
+
+      if (appState.currentCategoryIndex < categoryOrder.length - 1) {
+        appState.currentCategoryIndex++;
+        saveTempAudit();
+        renderCurrentCategory();
+        setTimeout(() => {
+          const auditPage = document.getElementById('audit-page');
+          auditPage.scrollTop = 0;
+        }, 50);
+      } else {
+        showSummary();
+      }
+    }
+
+    // Özet Göster
+    function showSummary() {
+      showPage('summary');
+      renderSummary();
+      renderOtherDofList();
+    }
+
+    // Diğer DÖF Listesi
+    function renderOtherDofList() {
+      const listContainer = document.getElementById('other-dof-list');
+      
+      if (appState.otherDeficiencies.length === 0) {
+        listContainer.innerHTML = '';
+        return;
+      }
+
+      listContainer.innerHTML = appState.otherDeficiencies.map((dof, index) => `
+        <div class="p-3 bg-white border border-purple-300 rounded-xl flex items-start gap-3">
+          <div class="flex-1">
+            <p class="text-purple-900 font-medium">${dof}</p>
+          </div>
+          <button onclick="removeOtherDof(${index})" 
+                  class="text-red-500 hover:text-red-700 font-bold text-xl">
+            ✕
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // Diğer DÖF Ekle
+    function addOtherDof() {
+      const input = document.getElementById('other-dof-text');
+      const dofText = input.value.trim();
+      
+      if (!dofText) {
+        showToast('Lütfen DÖF metnini girin');
+        return;
+      }
+
+      appState.otherDeficiencies.push(dofText);
+      input.value = '';
+      saveTempAudit();
+      renderOtherDofList();
+      renderSummary();
+      showToast('Diğer DÖF eklendi');
+    }
+
+    // Diğer DÖF Sil
+    function removeOtherDof(index) {
+      appState.otherDeficiencies.splice(index, 1);
+      saveTempAudit();
+      renderOtherDofList();
+      renderSummary();
+      showToast('Diğer DÖF silindi');
+    }
+    
+    // Formu Temizle
+    function resetForm() {
+      appState.answers = {};
+      appState.photos = {};
+      appState.currentCategoryIndex = 0;
+      appState.editingAuditId = null;
+      appState.previousDeficiencies = [];
+      
+      document.getElementById('previous-audit-warning').classList.add('hidden');
+    }
+    
+    function clearAllForm() {
+      document.getElementById('school-code').value = '';
+      document.getElementById('school-name').value = '';
+      document.getElementById('school-district').value = '';
+      document.getElementById('audit-date').valueAsDate = new Date();
+      document.getElementById('school-address').value = '';
+      document.getElementById('school-scope').value = '';
+      document.getElementById('school-hazard-class').value = '';
+      document.getElementById('school-phone').value = '';
+      document.getElementById('school-email').value = '';
+      appState.schoolCode = '';
+      appState.schoolName = '';
+      appState.schoolDistrict = '';
+      appState.auditDate = '';
+      appState.schoolAddress = '';
+      appState.schoolScope = '';
+      appState.schoolHazardClass = '';
+      appState.schoolPhone = '';
+      appState.schoolEmail = '';
+      appState.answers = {};
+      appState.photos = {};
+      appState.currentCategoryIndex = 0;
+      appState.editingAuditId = null;
+      appState.previousDeficiencies = [];
+      
+      document.getElementById('previous-audit-warning').classList.add('hidden');
+    }
+
+    function renderSummary() {
+      const content = document.getElementById('summary-content');
+      
+      let yesCount = 0, noCount = 0, naCount = 0;
+      const deficiencies = [];
+      const continuingDeficiencies = [];
+      const newDeficiencies = [];
+      const resolvedDeficiencies = [];
+      
+      Object.entries(appState.answers).forEach(([code, answer]) => {
+        if (answer.value === 'yes') {
+          yesCount++;
+          const wasPrevious = appState.previousDeficiencies.find(pd => pd.code === code);
+          if (wasPrevious) {
+            wasPrevious.resolved = true;
+            resolvedDeficiencies.push({ code, dof: wasPrevious.dof });
+          }
+        }
+        else if (answer.value === 'no') {
+          noCount++;
+          const photo = appState.photos[code] || null;
+          const isPrevious = appState.previousDeficiencies.find(pd => pd.code === code && !pd.resolved);
+          
+          if (isPrevious) {
+            continuingDeficiencies.push({ code, dof: answer.dof, note: answer.note, photo });
+          } else {
+            newDeficiencies.push({ code, dof: answer.dof, note: answer.note, photo });
+          }
+          
+          deficiencies.push({ code, dof: answer.dof, note: answer.note, photo, isPrevious: !!isPrevious });
+        }
+        else if (answer.value === 'na') naCount++;
+      });
+
+      content.innerHTML = `
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+          <h3 class="text-lg font-bold text-gray-800 mb-4">📋 Denetim Bilgileri</h3>
+          <div class="grid grid-cols-2 gap-4 text-sm">
+            <div><span class="text-gray-500">Okul:</span> <strong>${appState.schoolName}</strong></div>
+            <div><span class="text-gray-500">Kod:</span> <strong>${appState.schoolCode}</strong></div>
+            <div><span class="text-gray-500">İlçe:</span> <strong>${appState.schoolDistrict || '-'}</strong></div>
+            <div><span class="text-gray-500">Tarih:</span> <strong>${appState.auditDate}</strong></div>
+            <div class="col-span-2"><span class="text-gray-500">Adres:</span> <strong>${appState.schoolAddress || '-'}</strong></div>
+            <div><span class="text-gray-500">Kapsam:</span> <strong>${appState.schoolScope || '-'}</strong></div>
+            <div><span class="text-gray-500">Tehlike Sınıfı:</span> <strong>${appState.schoolHazardClass || '-'}</strong></div>
+            <div><span class="text-gray-500">Telefon:</span> <strong>${appState.schoolPhone || '-'}</strong></div>
+            <div><span class="text-gray-500">E-Posta:</span> <strong>${appState.schoolEmail || '-'}</strong></div>
+            <div><span class="text-gray-500">Toplam Personel:</span> <strong>${appState.totalPersonnel}</strong></div>
+            <div><span class="text-gray-500">Toplam Öğrenci:</span> <strong>${appState.totalStudents}</strong></div>
+            <div><span class="text-gray-500">Toplam Soru:</span> <strong>${getTotalQuestions()}</strong></div>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-3 gap-3">
+          <div class="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+            <div class="text-2xl font-bold text-green-600">${yesCount}</div>
+            <div class="text-xs text-green-700">Evet</div>
+          </div>
+          <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
+            <div class="text-2xl font-bold text-red-600">${noCount}</div>
+            <div class="text-xs text-red-700">Hayır</div>
+          </div>
+          <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-center">
+            <div class="text-2xl font-bold text-yellow-600">${naCount}</div>
+            <div class="text-xs text-yellow-700">Gerekli Değil</div>
+          </div>
+        </div>
+
+        ${appState.previousDeficiencies.length > 0 ? `
+          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl shadow-lg p-6 border border-blue-200">
+            <h3 class="text-lg font-bold text-blue-800 mb-3">📊 Önceki Denetim Takibi</h3>
+            <div class="grid grid-cols-3 gap-3 mb-4">
+              <div class="bg-white rounded-lg p-3 text-center border border-blue-200">
+                <div class="text-xl font-bold text-orange-600">${continuingDeficiencies.length}</div>
+                <div class="text-xs text-gray-600">Devam Eden</div>
+              </div>
+              <div class="bg-white rounded-lg p-3 text-center border border-blue-200">
+                <div class="text-xl font-bold text-green-600">${resolvedDeficiencies.length}</div>
+                <div class="text-xs text-gray-600">Giderildi</div>
+              </div>
+              <div class="bg-white rounded-lg p-3 text-center border border-blue-200">
+                <div class="text-xl font-bold text-red-600">${newDeficiencies.length}</div>
+                <div class="text-xs text-gray-600">Yeni Eksiklik</div>
+              </div>
+            </div>
+            ${resolvedDeficiencies.length > 0 ? `
+              <div class="bg-green-50 border border-green-300 rounded-lg p-3 mb-3">
+                <h4 class="text-sm font-bold text-green-800 mb-2">✅ Giderilen Eksiklikler</h4>
+                <div class="space-y-1">
+                  ${resolvedDeficiencies.map(d => `
+                    <div class="text-xs text-green-700">• ${d.code}: ${d.dof}</div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        ` : ''}
+        
+        ${deficiencies.length > 0 ? `
+          <div class="bg-white rounded-2xl shadow-lg p-6">
+            <h3 class="text-lg font-bold text-red-600 mb-4">⚠️ Düzeltici Önleyici Faaliyetler (${deficiencies.length})</h3>
+            
+            ${continuingDeficiencies.length > 0 ? `
+              <div class="mb-4">
+                <h4 class="text-sm font-bold text-orange-600 mb-2">🔄 Önceki Denetimden Devam Eden Eksiklikler (${continuingDeficiencies.length})</h4>
+                <div class="space-y-3">
+                  ${continuingDeficiencies.map(d => `
+                    <div class="p-3 bg-orange-50 border-2 border-orange-300 rounded-xl">
+                      <div class="flex items-start gap-2 mb-2">
+                        <span class="bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded">${d.code}</span>
+                        <span class="bg-red-500 text-white text-xs px-2 py-1 rounded">⚠️ DEVAM EDİYOR</span>
+                      </div>
+                      <p class="text-orange-900 font-medium">${d.dof}</p>
+                      ${d.note ? `<p class="text-orange-700 text-sm mt-1">Not: ${d.note}</p>` : ''}
+                      ${d.photo ? `<img src="${d.photo}" alt="Deficiency photo" loading="lazy" class="w-full h-24 object-cover rounded-lg mt-2">` : ''}
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+
+            ${newDeficiencies.length > 0 ? `
+              <div>
+                <h4 class="text-sm font-bold text-red-600 mb-2">🆕 Yeni Tespit Edilen Eksiklikler (${newDeficiencies.length})</h4>
+                <div class="space-y-3">
+                  ${newDeficiencies.map(d => `
+                    <div class="p-3 bg-red-50 border border-red-200 rounded-xl">
+                      <div class="flex items-start gap-2 mb-2">
+                        <span class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">${d.code}</span>
+                      </div>
+                      <p class="text-red-800 font-medium">${d.dof}</p>
+                      ${d.note ? `<p class="text-red-600 text-sm mt-1">Not: ${d.note}</p>` : ''}
+                      ${d.photo ? `<img src="${d.photo}" alt="Deficiency photo" loading="lazy" class="w-full h-24 object-cover rounded-lg mt-2">` : ''}
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        ` : `
+          <div class="bg-green-50 border border-green-200 rounded-2xl p-6 text-center">
+            <div class="text-4xl mb-2">✅</div>
+            <h3 class="text-lg font-bold text-green-700">Tebrikler!</h3>
+            <p class="text-green-600">Tüm maddeler uygun bulunmuştur.</p>
+          </div>
+        `}
+
+        ${(() => {
+          const otherDofs = appState.otherDeficiencies || [];
+          if (otherDofs.length === 0) return '';
+          
+          return `
+            <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl shadow-lg p-6 border border-purple-300">
+              <h3 class="text-lg font-bold text-purple-900 mb-4">📝 Diğer DÖF (${otherDofs.length})</h3>
+              <div class="space-y-3">
+                ${otherDofs.map((dof, idx) => `
+                  <div class="p-3 bg-white border border-purple-200 rounded-xl">
+                    <div class="flex items-start gap-2 mb-2">
+                      <span class="bg-purple-500 text-white text-xs font-bold px-2 py-1 rounded">DİĞER ${idx + 1}</span>
+                    </div>
+                    <p class="text-purple-900 font-medium">${dof}</p>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        })()}
+      `;
+    }
+
+    // Denetimi Kaydet
 
 // ==========================================
-// DENETİMİ KAYDET (Google Sheets + localStorage)
+// 1. DENETİMİ KAYDET FONKSİYONU
 // ==========================================
 async function saveAudit() {
     const saveBtn = document.getElementById('save-audit');
@@ -1061,7 +1882,7 @@ async function saveAudit() {
     let deficiencyCount = 0;
 
     if (!appState || !appState.answers) {
-        showToast("Hata: Denetim verileri bulunamadı!");
+        showToast("Hata: Denetim verileri bulunamadı!", "error");
         return;
     }
 
@@ -1071,48 +1892,41 @@ async function saveAudit() {
             deficiencyCount++;
             const question = findQuestionByCode(code); 
             const questionText = question ? question.text : "Soru bulunamadı";
-            const dofText = (answerData.dof || (question ? question.dof : "DÖF belirtilmedi"));
+            const dofText = answerData.observation || (question ? question.dof : "DÖF belirtilmedi");
             deficienciesList += `${deficiencyCount}- [${code}] ${questionText} | DÖF: ${dofText}\n`;
         }
     });
 
-    // Local kayıt için tam veri + Sheets için özet alanlar birlikte saklanır
-    const auditId = appState.editingAuditId || generateId();
     const auditData = {
-        id: auditId,
+        id: appState.editingAuditId || Date.now(),
         timestamp: new Date().toLocaleString('tr-TR'),
         school_name: appState.schoolName || "Belirtilmedi",
         school_code: appState.schoolCode || "Belirtilmedi",
         school_district: appState.schoolDistrict || "Belirtilmedi",
         audit_date: appState.auditDate || new Date().toLocaleDateString('tr-TR'),
-        school_address: appState.schoolAddress || "",
         school_scope: appState.schoolScope || "",
         school_hazard_class: appState.schoolHazardClass || "",
-        school_phone: appState.schoolPhone || "",
-        school_email: appState.schoolEmail || "",
         total_personnel: appState.totalPersonnel || 0,
         total_students: appState.totalStudents || 0,
         deficiencies: deficienciesList || "Eksiklik bulunmadı.",
         deficiency_count: deficiencyCount,
         status: 'completed',
-        created_at: new Date().toISOString(),
-        // Uygulama içi kayıtlar (geçmiş denetim listesi ve detaylar için)
-        answers: appState.answers || {},
-        photos: appState.photos || {},
-        previous_deficiencies: appState.previousDeficiencies || [],
-        other_deficiencies: appState.otherDeficiencies || []
+        created_at: new Date().toISOString()
     };
 
     try {
         saveBtn.disabled = true;
         saveBtn.textContent = '⏳ Kaydediliyor...';
 
-        const index = appState.allAudits.findIndex(a => a.id === auditId);
-        if (index !== -1) appState.allAudits[index] = auditData;
-        else appState.allAudits.push(auditData);
-
-        saveAuditsToStorage();
-        renderAuditHistory();
+        if (appState.editingAuditId) {
+            const index = appState.allAudits.findIndex(a => a.id === appState.editingAuditId);
+            if (index !== -1) appState.allAudits[index] = auditData;
+        } else {
+            appState.allAudits.push(auditData);
+        }
+        
+        if (typeof saveAuditsToStorage === 'function') saveAuditsToStorage();
+        if (typeof renderAuditHistory === 'function') renderAuditHistory();
 
         try {
             await fetch(SCRIPT_URL, {
@@ -1129,25 +1943,35 @@ async function saveAudit() {
         showToast('✅ Kayıt Başarılı!');
         
         appState.editingAuditId = null;
-        clearTempAudit();
+        if (typeof clearTempAudit === 'function') clearTempAudit();
         
         setTimeout(() => {
+            if (typeof clearAllForm === 'function') clearAllForm();
             showPage('home');
-            switchTab('data');
+            if (typeof switchTab === 'function') switchTab('data');
             saveBtn.disabled = false;
             saveBtn.textContent = '💾 Denetimi Kaydet';
-        }, 800);
+        }, 1500);
 
     } catch (error) {
         console.error('Kayıt Hatası:', error);
-        showToast('Hata: ' + error.message);
+        showToast('Hata: ' + error.message, "error");
         saveBtn.disabled = false;
         saveBtn.textContent = '💾 Denetimi Kaydet';
     }
 }
 
+function findQuestionByCode(code) {
+    if (typeof auditQuestions === 'undefined') return null;
+    for (let catKey in auditQuestions) {
+        const question = auditQuestions[catKey].questions.find(q => q.code === code);
+        if (question) return question;
+    }
+    return null;
+}
+
 // ==========================================
-// PDF İNDİR
+// 2. PDF İNDİR FONKSİYONU
 // ==========================================
 async function downloadPDF() {
     const downloadBtn = document.getElementById('download-pdf');
@@ -1220,10 +2044,9 @@ async function downloadPDF() {
         if (typeof categoryOrder !== 'undefined') {
             categoryOrder.forEach(catKey => {
                 const category = auditQuestions[catKey];
-                if (!category) return;
-                const rows = (category.questions || []).map(q => {
+                const rows = category.questions.map(q => {
                     const ans = appState.answers[q.code] || { value: '' };
-                    if (ans.value === 'no') deficiencies.push(`[${q.code}] ${ans.dof || q.dof}`);
+                    if (ans.value === 'no') deficiencies.push(`[${q.code}] ${ans.observation || q.dof}`);
                     return [q.code, q.text, ans.value === 'yes' ? 'X' : '', ans.value === 'no' ? 'X' : ''];
                 });
 
@@ -1257,14 +2080,14 @@ async function downloadPDF() {
 
     } catch (error) {
         console.error('PDF Hatası:', error);
-        showToast("PDF Hatası: " + error.message);
-        downloadBtn.textContent = originalText;
+        showToast("PDF Hatası: " + error.message, "error");
+        downloadBtn.textContent = '❌ Hata';
         downloadBtn.disabled = false;
     }
 }
 
 // ==========================================
-// Event Listeners
+// 3. EVENT LISTENERS VE DİĞER FONKSİYONLAR
 // ==========================================
 document.getElementById('school-code').addEventListener('input', checkPreviousAudits);
 document.getElementById('school-name').addEventListener('input', checkPreviousAudits);
@@ -1301,11 +2124,26 @@ document.getElementById('back-to-home').addEventListener('click', () => {
 document.getElementById('continue-to-audit').addEventListener('click', () => {
     saveTempAudit();
     showPage('audit');
-    // renderCurrentCategory(); // Orijinal fonksiyonunuz burada çağrılmalı
+    renderCurrentCategory();
 });
 
+document.getElementById('prev-category').addEventListener('click', goToPrevCategory);
+document.getElementById('next-category').addEventListener('click', goToNextCategory);
 document.getElementById('save-audit').addEventListener('click', saveAudit);
 document.getElementById('download-pdf').addEventListener('click', downloadPDF);
+
+function saveTempAudit() {
+    localStorage.setItem('isg_temp_audit', JSON.stringify(appState));
+}
+
+function loadTempAudit() {
+    const saved = localStorage.getItem('isg_temp_audit');
+    if (saved) Object.assign(appState, JSON.parse(saved));
+}
+
+function clearTempAudit() {
+    localStorage.removeItem('isg_temp_audit');
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     loadAuditsFromStorage();
@@ -1313,7 +2151,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const today = new Date().toISOString().split('T')[0];
     if(document.getElementById('audit-date')) document.getElementById('audit-date').value = today;
 });
-  </script>
- </body>
+</script>
+</body>
 </html>
+
+
+
 
