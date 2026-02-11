@@ -2413,17 +2413,15 @@ async function downloadPDF() {
       showPage('audit');
     });
 
-document.getElementById('save-audit').onclick = async function() {
-    // 1. İşlem: Tarayıcıya kaydet
+    document.getElementById('save-audit').addEventListener('click', async () => {
+    // 1. Önce veriyi tarayıcının yerel hafızasına kaydeder
     saveAudit(); 
     
-    // 2. İşlem: Google Sheets'e gönder (Sessizce)
-    await sendToSheet();
-    
-    // 3. İşlem: Tek bir birleşik uyarı göster
-    alert("Denetim kaydedildi ve Google Sheet'e aktarıldı.");
-};
-   
+    // 2. Kullanıcıya sorar ve onay alırsa Google Sheets'e gönderir
+    if (confirm("Denetim tarayıcıya kaydedildi. Verileri Google Sheets (E-Tablo) dosyasına da aktarmak ister misiniz?")) {
+        await sendToSheet();
+    }
+});
     document.getElementById('download-pdf').addEventListener('click', downloadPDF);
 
     document.getElementById('camera-input').addEventListener('change', (e) => handlePhotoSelect(e.target.files[0]));
@@ -2536,67 +2534,11 @@ document.getElementById('save-audit').onclick = async function() {
     });
 
 
-async function submitAudit() {
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbysE9xtt1y_BelfH0yl_GI3-XuZ8HmS7Y9JfPTe0nVfPZIAuv9ZeIMMF_C0PJ52qvZO/exec";
-    const btn = document.getElementById('save-audit');
-    const originalText = btn.innerText;
-
-    // 1. Verileri senin orijinal yapından topla
-   const finalData = {
-    // ... diğer bilgiler ...
-    questions: Object.keys(answers).map(key => ({
-        id: key,
-        status: answers[key]
-    }))
-};
-
-    // Tüm radyo butonlarındaki cevapları topla
-    document.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
-        finalData.questions.push({
-            id: radio.name,
-            status: radio.value
-        });
-    });
-
-    if(!finalData.schoolName) {
-        alert("Lütfen okul adını doldurun!");
-        return;
-    }
-
-    btn.innerText = "⏳ Kaydediliyor...";
-    btn.disabled = true;
-
-    // 2. Google Script'e GÖNDER (GitHub uyumlu yöntem)
-    try {
-        await fetch(SCRIPT_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(finalData)
-        });
-        
-        alert("✅ Başarıyla kaydedildi!");
-        btn.innerText = originalText;
-        btn.disabled = false;
-        
-        // Formu temizle (senin orijinal fonksiyonun varsa çalışır)
-        if(typeof clearTempAudit === 'function') clearTempAudit();
-        location.reload(); 
-        
-    } catch (err) {
-        alert("Hata oluştu: " + err);
-        btn.innerText = originalText;
-        btn.disabled = false;
-    }
-}
-
-// Apps Script'ten kopyaladığınız URL'yi buraya yapıştırın
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzwNOL741czfI4aGFF6U2S1DVQtgPR9tgDwHmQu_oTMQdzkM2JfY1BnRa7UNjVmkaCw/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyR3C95HCWu0o-XSBlB77dgDPML_bKDUiy_ShuG74BeafcSfa_eYJeZatKp37SlJX-2/exec";
 
 async function sendToSheet() {
     try {
         const dataToSend = {
-            auditDate: appState.auditDate,
             schoolName: appState.schoolName,
             schoolCode: appState.schoolCode,
             inspectorName: appState.inspectorName,
@@ -2609,9 +2551,8 @@ async function sendToSheet() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(dataToSend)
         });
-        // alert satırını sildik, böylece işlem sessizce tamamlanacak
     } catch (error) {
-        console.error("Sheets Aktarım Hatası:", error);
+        console.error("Sheets Hatası:", error);
     }
 }
    
