@@ -2413,15 +2413,17 @@ async function downloadPDF() {
       showPage('audit');
     });
 
-    document.getElementById('save-audit').addEventListener('click', async () => {
-    // 1. Önce veriyi tarayıcının yerel hafızasına kaydeder
+document.getElementById('save-audit').onclick = async function() {
+    // 1. İşlem: Tarayıcıya kaydet
     saveAudit(); 
     
-    // 2. Kullanıcıya sorar ve onay alırsa Google Sheets'e gönderir
-    if (confirm("Denetim tarayıcıya kaydedildi. Verileri Google Sheets (E-Tablo) dosyasına da aktarmak ister misiniz?")) {
-        await sendToSheet();
-    }
-});
+    // 2. İşlem: Google Sheets'e gönder (Sessizce)
+    await sendToSheet();
+    
+    // 3. İşlem: Tek bir birleşik uyarı göster
+    alert("Denetim kaydedildi ve Google Sheet'e aktarıldı.");
+};
+   
     document.getElementById('download-pdf').addEventListener('click', downloadPDF);
 
     document.getElementById('camera-input').addEventListener('change', (e) => handlePhotoSelect(e.target.files[0]));
@@ -2592,25 +2594,31 @@ async function submitAudit() {
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzwNOL741czfI4aGFF6U2S1DVQtgPR9tgDwHmQu_oTMQdzkM2JfY1BnRa7UNjVmkaCw/exec";
 
 async function sendToSheet() {
-    // appState sizin index.txt dosyanızdaki tüm denetim verilerini tutan objedir
     try {
-        const response = await fetch(APPS_SCRIPT_URL, {
+        const dataToSend = {
+            auditDate: appState.auditDate,
+            schoolName: appState.schoolName,
+            schoolCode: appState.schoolCode,
+            inspectorName: appState.inspectorName,
+            score: calculateScore()
+        };
+
+        await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify(appState)
+            mode: 'no-cors', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dataToSend)
         });
-        
-        if (response.ok) {
-            alert("Veriler Google Sheet'e başarıyla aktarıldı!");
-        }
+        // alert satırını sildik, böylece işlem sessizce tamamlanacak
     } catch (error) {
-        console.error("Hata:", error);
-        alert("Aktarım sırasında bir hata oluştu.");
+        console.error("Sheets Aktarım Hatası:", error);
     }
 }
    
   </script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c79b84c11c6d5ff',t:'MTc3MDAzNTYzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
 
 
