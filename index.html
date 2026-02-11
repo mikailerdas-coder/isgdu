@@ -1870,91 +1870,33 @@ const auditQuestions = {
     // Denetimi Kaydet
 
 async function saveAudit() {
-  console.log("Kayıt işlemi başlatıldı...");
-  const saveBtn = document.getElementById('save-audit');
-  saveBtn.disabled = true;
-  saveBtn.textContent = '⏳ Google\'a Gönderiliyor...';
+    const saveBtn = document.getElementById('save-audit');
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '⏳ Kaydediliyor...';
 
-  try {
-    // 1. Veri Paketini Hazırla
-    const veriler = {
-      kurum_adi: document.getElementById('school-name').value || "Belirtilmedi",
-      denetimci: document.getElementById('inspector-name').value || "İSG Uzmanı",
-      tarih: document.getElementById('audit-date').value || new Date().toLocaleDateString('tr-TR'),
-      issues: []
-    };
+    try {
+        // 1. Yerel Kayıt (Hafızaya)
+        const auditRecord = { ...appState, id: Date.now(), score: calculateScore() };
+        const audits = JSON.parse(localStorage.getItem('isg_audits') || '[]');
+        audits.push(auditRecord);
+        localStorage.setItem('isg_audits', JSON.stringify(audits));
+        
+        // 2. Google Sheets'e Gönder (Sessizce)
+        await sendToSheet(); 
 
-    console.log("Okul Adı:", veriler.kurum_adi);
-
-    // 2. appState.answers içindeki verileri topla
-    // Senin kodunda cevaplar appState.answers[code].value içinde (yes/no)
-    Object.keys(auditQuestions).forEach(catKey => {
-      const category = auditQuestions[catKey];
-      category.questions.forEach(q => {
-        const answerData = appState.answers[q.code];
-        if (answerData) {
-          veriler.issues.push({
-            category: category.title,
-            code: q.code,
-            text: q.text,
-            answer: answerData.value === 'yes' ? 'Evet' : 'Hayır',
-            dof: answerData.value === 'no' ? (answerData.observation || q.dof) : '-'
-          });
-        }
-      });
-    });
-
-    console.log("Paketlenen soru sayısı:", veriler.issues.length);
-
-    if (veriler.issues.length === 0) {
-      alert("Lütfen en az bir soruyu cevaplayın!");
-      saveBtn.disabled = false;
-      saveBtn.textContent = '💾 Denetimi Kaydet';
-      return;
+        // 3. Tek Mesaj
+        alert("Denetim kaydedildi ve Google Sheet'e aktarıldı.");
+        
+        clearTempAudit();
+        location.reload();
+        
+    } catch (error) {
+        alert("Hata oluştu, verileriniz kaydedilemedi.");
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '💾 Denetimi Kaydet';
     }
-
-    // 3. Google Apps Script'e Gönder
-    if (typeof google !== 'undefined' && google.script && google.script.run) {
-      console.log("Google Script bağlantısı aktif, gönderiliyor...");
-      
-      google.script.run
-        .withSuccessHandler(function(response) {
-          console.log("Sunucudan gelen yanıt:", response);
-          const res = JSON.parse(response);
-          
-          if (res.status === "ok") {
-            saveBtn.disabled = false;
-            saveBtn.textContent = '✅ Kayıt Başarılı';
-            saveBtn.classList.replace('bg-blue-600', 'bg-green-600');
-            alert('Başarılı! Veriler E-Tabloya işlendi.');
-            if (res.url) window.open(res.url, '_blank');
-            clearTempAudit();
-          } else {
-            alert("Sunucu Hatası: " + res.message);
-            saveBtn.disabled = false;
-            saveBtn.textContent = '❌ Hata Oluştu';
-          }
-        })
-        .withFailureHandler(function(err) {
-          console.error("Google Script Hatası:", err);
-          alert("Bağlantı Hatası: " + err);
-          saveBtn.disabled = false;
-          saveBtn.textContent = '❌ Tekrar Dene';
-        })
-        .processData(JSON.stringify(veriler));
-    } else {
-      console.error("Google Script objesi bulunamadı!");
-      alert("Hata: Uygulama Google sunucularına bağlanamıyor. Lütfen 'Dağıtılmış URL' üzerinden açtığınızdan emin olun.");
-      saveBtn.disabled = false;
-    }
-
-  } catch (error) {
-    console.error('Kritik hata:', error);
-    saveBtn.disabled = false;
-    saveBtn.textContent = '❌ Hata';
-  }
 }
-
 
     function saveAudit() {
       const saveBtn = document.getElementById('save-audit');
@@ -2559,6 +2501,7 @@ async function sendToSheet() {
   </script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c79b84c11c6d5ff',t:'MTc3MDAzNTYzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
 
 
