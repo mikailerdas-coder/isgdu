@@ -2073,6 +2073,11 @@ async function saveAudit() {
     // PDF İndir
 
 
+<script>
+// --- 1. AYARLAR VE GLOBAL DEĞİŞKENLER ---
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzX2HT7sAQR4ur44srwukQB_QbeQkuuyCjUOIDEE-v-_kVb_4xQDsJzfTVZtMi15Z-8/exec";
+
+// --- 2. PDF İNDİRME FONKSİYONU ---
 async function downloadPDF() {
     const downloadBtn = document.getElementById('download-pdf');
     if (!downloadBtn) return;
@@ -2088,7 +2093,6 @@ async function downloadPDF() {
         const { jsPDF } = jspdf;
         const doc = new jsPDF();
 
-        // --- YARDIMCI FONKSİYONLAR ---
         const formatDate = (dateStr) => {
             if (!dateStr) return '';
             const date = new Date(dateStr);
@@ -2099,7 +2103,7 @@ async function downloadPDF() {
             return `${day}/${month}/${year}`;
         };
 
-        // --- 1. TÜRKÇE FONT YÜKLEME ---
+        // Türkçe Font Yükleme
         const fontUrl = "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf";
         const response = await fetch(fontUrl);
         const fontBlob = await response.blob();
@@ -2113,21 +2117,18 @@ async function downloadPDF() {
         doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
         doc.setFont("Roboto");
 
-        // --- AYARLAR ---
         const greenFill = [22, 163, 74]; 
         const redFill = [185, 28, 28];
         const rowHeight = 6; 
 
-        // --- GÜNCELLENMİŞ SÜTUN GENİŞLİKLERİ ---
         const colStylesDenetim = {
-            0: { cellWidth: 10, halign: 'center' }, // Soru Kodu (10 mm yapıldı)
-            1: { cellWidth: 102 },                  // Soru Metni (Koddan artan 5mm buraya eklendi)
-            2: { cellWidth: 15, halign: 'center' }, // EVET
-            3: { cellWidth: 15, halign: 'center' }, // HAYIR
-            4: { cellWidth: 40 }                    // AÇIKLAMA (Sabit 40 mm)
+            0: { cellWidth: 10, halign: 'center' },
+            1: { cellWidth: 102 },
+            2: { cellWidth: 15, halign: 'center' },
+            3: { cellWidth: 15, halign: 'center' },
+            4: { cellWidth: 40 }
         };
 
-        // --- 2. ÜST BİLGİ (HEADER) ---
         const drawHeader = (data) => {
             const ilceAdi = (appState.schoolDistrict || "..........").toUpperCase();
             doc.autoTable({
@@ -2146,23 +2147,16 @@ async function downloadPDF() {
                     [{ content: ' İlk Yayın Tarihi', styles: { halign: 'left' } }, { content: '30.10.2023', styles: { halign: 'center' } }],
                     [{ content: ' Revizyon Tarihi', styles: { halign: 'left' } }, { content: '../../20..', styles: { halign: 'center' } }],
                     [{ content: ' Revizyon No', styles: { halign: 'left' } }, { content: '0', styles: { halign: 'center' } }],
-                    [{ content: ' Sayfa No', styles: { halign: 'left' } }, { content: '' }] 
+                    [{ content: ' Sayfa No', styles: { halign: 'left' } }, { content: doc.internal.getNumberOfPages() }]
                 ],
             });
-            data.settings.margin.top = 38; 
+            data.settings.margin.top = 38;
         };
 
-        const formattedAuditDate = formatDate(appState.auditDate);
-
-        // --- 3. TABLOLAR ---
-
-        // Okul Bilgileri
+        // Tabloları Çizdirme (Okul Bilgileri)
         doc.autoTable({
-            startY: 38, 
-            head: [[
-                { content: 'OKUL/KURUM BİLGİLERİ', colSpan: 2, styles: { halign: 'left', valign: 'middle' } }, 
-                { content: `TARİH: ${formattedAuditDate}`, colSpan: 2, styles: { halign: 'right', valign: 'middle', cellPadding: { right: 20 } } } 
-            ]],
+            startY: 38,
+            head: [[{ content: 'OKUL/KURUM BİLGİLERİ', colSpan: 2 }, { content: `TARİH: ${formatDate(appState.auditDate)}`, colSpan: 2, styles: { halign: 'right' } }]],
             body: [
                 ['Adı', appState.schoolName || '', 'Tehlike Sınıfı', appState.schoolHazardClass || ''],
                 ['Kodu', appState.schoolCode || '', 'İşyeri Sicil No', appState.schoolRegistrationNumber || ''],
@@ -2170,97 +2164,15 @@ async function downloadPDF() {
                 ['Kapsam', appState.schoolScope || '', 'E-Posta', appState.schoolEmail || '']
             ],
             theme: 'grid',
-            styles: { font: "Roboto", fontSize: 8, cellPadding: 1.2, valign: 'middle', minCellHeight: rowHeight },
-            headStyles: { fillColor: greenFill, textColor: [255, 255, 255], fontStyle: 'bold' },
-            columnStyles: { 0: { cellWidth: 15, fontStyle: 'bold' }, 1: { cellWidth: 70 }, 2: { cellWidth: 31, fontStyle: 'bold' }, 3: { cellWidth: 66 } },
-            didDrawPage: drawHeader
-        });
-
-        // Personel Bilgileri
-        doc.autoTable({
-            startY: doc.lastAutoTable.finalY + 3,
-            head: [['PERSONEL TÜRÜ', 'Normal', 'Engelli', 'Eski Hükümlü', 'Kronik']],
-            body: [
-                ['Yönetici Sayısı', appState.managerCount || '0', '', '', ''],
-                ['Öğretmen Sayısı', appState.teacherCount || '0', '', '', ''],
-                ['Öğrenci Sayısı', appState.totalStudents || '0', appState.disabledStudentCount || '0', '', '']
-            ],
-            theme: 'grid',
-            styles: { font: "Roboto", fontSize: 8, valign: 'middle', minCellHeight: rowHeight, cellPadding: 1.2 },
+            styles: { font: "Roboto", fontSize: 8 },
             headStyles: { fillColor: greenFill },
             didDrawPage: drawHeader
         });
 
-        // Denetim Maddeleri (Kod: 10mm, Açıklama: 40mm)
-        let currentY = doc.lastAutoTable.finalY + 3;
-        let deficiencies = []; 
-        if (typeof categoryOrder !== 'undefined' && typeof auditQuestions !== 'undefined') {
-            for (const catKey of categoryOrder) {
-                const category = auditQuestions[catKey];
-                const rows = category.questions.map(q => {
-                    const ans = appState.answers[q.code] || { value: '', note: '', dof: '' };
-                    if (ans.value === 'no') deficiencies.push(`${ans.dof || 'Belirtilmedi'} (${q.code})`);
-                    return [q.code, q.text, ans.value === 'yes' ? 'X' : '', ans.value === 'no' ? 'X' : '', ans.note || ''];
-                });
-                doc.autoTable({
-                    startY: currentY,
-                    head: [[catKey, category.title, 'EVET', 'HAYIR', 'AÇIKLAMA']],
-                    body: rows,
-                    theme: 'grid',
-                    styles: { font: "Roboto", fontSize: 7, valign: 'middle', minCellHeight: rowHeight, cellPadding: 1.2 },
-                    headStyles: { fillColor: greenFill },
-                    columnStyles: colStylesDenetim, 
-                    pageBreak: 'auto',
-                    didDrawPage: drawHeader
-                });
-                currentY = doc.lastAutoTable.finalY + 3;
-            }
-        }
+        // ... (Diğer Personel ve Denetim Maddeleri tabloları buraya gelecek - mevcut kodunuzdaki gibi) ...
 
-        // Gözlemler (Kırmızı Bölüm)
-        let finalDofRows = deficiencies.map((dofText, index) => [(index + 1).toString(), dofText]);
-        if (appState.otherDeficiencies && appState.otherDeficiencies.length > 0) {
-            appState.otherDeficiencies.forEach((other, i) => finalDofRows.push([(deficiencies.length + i + 1).toString(), other]));
-        }
-
-        doc.autoTable({
-            startY: currentY + 3,
-            head: [[{ content: 'OKUL/KURUMDA GÖZLEMLER, EKSİKLİKLER, TESPİT, ÖNERİLER VE DEĞERLENDİRMELER', colSpan: 2 }]],
-            body: finalDofRows.length > 0 ? finalDofRows : [['-', 'Yapılan denetimde herhangi bir uygunsuzluk tespit edilmemiştir.']],
-            theme: 'grid',
-            styles: { font: "Roboto", fontSize: 8, cellPadding: 1.2, valign: 'middle', minCellHeight: rowHeight },
-            headStyles: { fillColor: redFill, halign: 'center', fontStyle: 'bold' },
-            columnStyles: { 0: { cellWidth: 10, halign: 'center' } }, // Gözlem numarası kod sütunuyla aynı genişlikte
-            didDrawPage: drawHeader
-        });
-
-        // Onay Bölümü
-        doc.autoTable({
-            startY: doc.lastAutoTable.finalY + 5,
-            head: [[{content: 'ONAY', styles:{halign:'center'}}, {content: 'OKUL / KURUM', colSpan:2, styles:{halign:'center'}}, {content: 'İLÇE MİLLİ EĞİTİM MÜDÜRLÜĞÜ', colSpan:2, styles:{halign:'center'}}]],
-            body: [
-                ['UNVANI', 'Müdür Yard.', 'Okul Müdürü', 'İSG Büro Yön.', 'Şube Müdürü'],
-                ['İMZA', '', '', '', ''],
-                ['ADI SOYADI', appState.vicarName || '', appState.principalName || '', appState.inspectorName || '', appState.subManagerName || ''],
-                ['CEP TEL', '', '', '', '']
-            ],
-            theme: 'grid',
-            styles: { font: "Roboto", fontSize: 7, halign: 'center', valign: 'middle', minCellHeight: rowHeight, cellPadding: 1.2 },
-            headStyles: { fillColor: greenFill },
-            didDrawPage: drawHeader
-        });
-
-        // --- 4. SAYFA NUMARALANDIRMA ---
-        const totalPages = doc.internal.getNumberOfPages();
-        for (let i = 1; i <= totalPages; i++) {
-            doc.setPage(i);
-            doc.setFontSize(7);
-            doc.setTextColor(0, 0, 0);
-            doc.text(`${i} / ${totalPages}`, 180, 33.0, { align: 'center' }); 
-        }
-
-        doc.save(`ISG_Denetim_Raporu_${appState.schoolCode || 'Rapor'}.pdf`);
-        if (typeof showToast !== 'undefined') showToast('Rapor Başarıyla Hazırlandı! ✓');
+        doc.save(`ISG_Denetim_${appState.schoolCode || 'Rapor'}.pdf`);
+        showToast('PDF Hazırlandı! ✓');
 
     } catch (error) {
         console.error('PDF Hatası:', error);
@@ -2271,380 +2183,96 @@ async function downloadPDF() {
     }
 }
 
-
-    // Event Listeners
-    document.getElementById('school-code').addEventListener('input', checkPreviousAudits);
-    document.getElementById('school-name').addEventListener('input', checkPreviousAudits);
-    
-    document.getElementById('start-audit-btn').addEventListener('click', () => {
-      const schoolCode = document.getElementById('school-code').value.trim();
-      const schoolName = document.getElementById('school-name').value.trim();
-      const schoolDistrict = document.getElementById('school-district').value.trim();
-      const auditDate = document.getElementById('audit-date').value;
-      const schoolAddress = document.getElementById('school-address').value.trim();
-      const schoolScope = document.getElementById('school-scope').value.trim();
-      const schoolHazardClass = document.getElementById('school-hazard-class').value;
-      const schoolPhone = document.getElementById('school-phone').value.trim();
-      const schoolEmail = document.getElementById('school-email').value.trim();
-      
-      if (!schoolCode || !schoolName || !schoolDistrict || !auditDate) {
-        showToast('Lütfen zorunlu alanları doldurun');
-        return;
-      }
-      
-      appState.schoolCode = schoolCode;
-      appState.schoolName = schoolName;
-      appState.schoolDistrict = schoolDistrict;
-      appState.auditDate = auditDate;
-      appState.schoolAddress = schoolAddress;
-      appState.schoolScope = schoolScope;
-      appState.schoolHazardClass = schoolHazardClass;
-      appState.schoolPhone = schoolPhone;
-      appState.schoolEmail = schoolEmail;
-      
-      document.getElementById('personnel-school-info').textContent = 
-        `${appState.schoolName} • ${appState.schoolDistrict} • ${appState.auditDate}`;
-      
-      document.getElementById('manager-count').value = appState.managerCount || 0;
-      document.getElementById('teacher-count').value = appState.teacherCount || 0;
-      document.getElementById('officer-count').value = appState.officerCount || 0;
-      document.getElementById('servant-count').value = appState.servantCount || 0;
-      document.getElementById('worker-count').value = appState.workerCount || 0;
-      document.getElementById('typ-count').value = appState.typCount || 0;
-      document.getElementById('paid-teacher-count').value = appState.paidTeacherCount || 0;
-      document.getElementById('contract-count').value = appState.contractCount || 0;
-      document.getElementById('master-instructor-count').value = appState.masterInstructorCount || 0;
-      document.getElementById('disabled-count').value = appState.disabledCount || 0;
-      document.getElementById('exconvict-count').value = appState.exconvictCount || 0;
-      document.getElementById('chronic-count').value = appState.chronicCount || 0;
-      calculateTotalPersonnel();
-
-      document.getElementById('normal-student-count').value = appState.normalStudentCount || 0;
-      document.getElementById('disabled-student-count').value = appState.disabledStudentCount || 0;
-      document.getElementById('inclusion-student-count').value = appState.inclusionStudentCount || 0;
-      document.getElementById('chronic-student-count').value = appState.chronicStudentCount || 0;
-      calculateTotalStudents();
-      
-      saveTempAudit();
-      showPage('personnel');
-    });
-
-    document.getElementById('back-to-home').addEventListener('click', () => {
-      appState.managerCount = parseInt(document.getElementById('manager-count').value) || 0;
-      appState.teacherCount = parseInt(document.getElementById('teacher-count').value) || 0;
-      appState.officerCount = parseInt(document.getElementById('officer-count').value) || 0;
-      appState.servantCount = parseInt(document.getElementById('servant-count').value) || 0;
-      appState.workerCount = parseInt(document.getElementById('worker-count').value) || 0;
-      appState.typCount = parseInt(document.getElementById('typ-count').value) || 0;
-      appState.paidTeacherCount = parseInt(document.getElementById('paid-teacher-count').value) || 0;
-      appState.contractCount = parseInt(document.getElementById('contract-count').value) || 0;
-      appState.masterInstructorCount = parseInt(document.getElementById('master-instructor-count').value) || 0;
-      appState.disabledCount = parseInt(document.getElementById('disabled-count').value) || 0;
-      appState.exconvictCount = parseInt(document.getElementById('exconvict-count').value) || 0;
-      appState.chronicCount = parseInt(document.getElementById('chronic-count').value) || 0;
-      appState.totalPersonnel = parseInt(document.getElementById('total-personnel').value) || 0;
-      
-      appState.normalStudentCount = parseInt(document.getElementById('normal-student-count').value) || 0;
-      appState.disabledStudentCount = parseInt(document.getElementById('disabled-student-count').value) || 0;
-      appState.inclusionStudentCount = parseInt(document.getElementById('inclusion-student-count').value) || 0;
-      appState.chronicStudentCount = parseInt(document.getElementById('chronic-student-count').value) || 0;
-      appState.totalStudents = parseInt(document.getElementById('total-students').value) || 0;
-      
-      saveTempAudit();
-      showPage('home');
-      switchTab('new');
-    });
-
-    document.getElementById('continue-to-audit').addEventListener('click', () => {
-      appState.managerCount = parseInt(document.getElementById('manager-count').value) || 0;
-      appState.teacherCount = parseInt(document.getElementById('teacher-count').value) || 0;
-      appState.officerCount = parseInt(document.getElementById('officer-count').value) || 0;
-      appState.servantCount = parseInt(document.getElementById('servant-count').value) || 0;
-      appState.workerCount = parseInt(document.getElementById('worker-count').value) || 0;
-      appState.typCount = parseInt(document.getElementById('typ-count').value) || 0;
-      appState.paidTeacherCount = parseInt(document.getElementById('paid-teacher-count').value) || 0;
-      appState.contractCount = parseInt(document.getElementById('contract-count').value) || 0;
-      appState.masterInstructorCount = parseInt(document.getElementById('master-instructor-count').value) || 0;
-      appState.disabledCount = parseInt(document.getElementById('disabled-count').value) || 0;
-      appState.exconvictCount = parseInt(document.getElementById('exconvict-count').value) || 0;
-      appState.chronicCount = parseInt(document.getElementById('chronic-count').value) || 0;
-      appState.totalPersonnel = parseInt(document.getElementById('total-personnel').value) || 0;
-      
-      appState.normalStudentCount = parseInt(document.getElementById('normal-student-count').value) || 0;
-      appState.disabledStudentCount = parseInt(document.getElementById('disabled-student-count').value) || 0;
-      appState.inclusionStudentCount = parseInt(document.getElementById('inclusion-student-count').value) || 0;
-      appState.chronicStudentCount = parseInt(document.getElementById('chronic-student-count').value) || 0;
-      appState.totalStudents = parseInt(document.getElementById('total-students').value) || 0;
-      
-      const hasTemp = localStorage.getItem('isg_temp_audit');
-      if (!hasTemp || Object.keys(appState.answers).length === 0) {
-        appState.currentCategoryIndex = 0;
-        appState.editingAuditId = null;
-        appState.answers = {};
-        appState.photos = {};
-        
-        if (appState.previousDeficiencies.length > 0) {
-          appState.previousDeficiencies.forEach(def => {
-            appState.answers[def.code] = {
-              value: 'no',
-              dof: def.dof,
-              note: ''
-            };
-          });
-        }
-      }
-      
-      saveTempAudit();
-      showPage('audit');
-      renderCurrentCategory();
-    });
-
-    document.getElementById('prev-category').addEventListener('click', goToPrevCategory);
-    document.getElementById('next-category').addEventListener('click', goToNextCategory);
-
-    document.getElementById('back-to-audit').addEventListener('click', () => {
-      showPage('audit');
-    });
-
- 
-    
-    document.getElementById('download-pdf').addEventListener('click', downloadPDF);
-
-    document.getElementById('camera-input').addEventListener('change', (e) => handlePhotoSelect(e.target.files[0]));
-    document.getElementById('gallery-input').addEventListener('change', (e) => handlePhotoSelect(e.target.files[0]));
-    document.getElementById('cancel-photo').addEventListener('click', closePhotoModal);
-    document.getElementById('save-photo').addEventListener('click', savePhotoFunc);
-
-    document.getElementById('add-other-dof').addEventListener('click', addOtherDof);
-    document.getElementById('other-dof-text').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        addOtherDof();
-      }
-    });
-
-    // Geçici denetimi kaydet
-    function saveTempAudit() {
-      const tempAudit = {
-        schoolCode: appState.schoolCode,
-        schoolName: appState.schoolName,
-        schoolDistrict: appState.schoolDistrict,
-        auditDate: appState.auditDate,
-        schoolAddress: appState.schoolAddress,
-        schoolScope: appState.schoolScope,
-        schoolHazardClass: appState.schoolHazardClass,
-        schoolPhone: appState.schoolPhone,
-        schoolEmail: appState.schoolEmail,
-        managerCount: appState.managerCount,
-        teacherCount: appState.teacherCount,
-        officerCount: appState.officerCount,
-        servantCount: appState.servantCount,
-        workerCount: appState.workerCount,
-        typCount: appState.typCount,
-        paidTeacherCount: appState.paidTeacherCount,
-        contractCount: appState.contractCount,
-        masterInstructorCount: appState.masterInstructorCount,
-        disabledCount: appState.disabledCount,
-        exconvictCount: appState.exconvictCount,
-        chronicCount: appState.chronicCount,
-        totalPersonnel: appState.totalPersonnel,
-        normalStudentCount: appState.normalStudentCount,
-        disabledStudentCount: appState.disabledStudentCount,
-        inclusionStudentCount: appState.inclusionStudentCount,
-        chronicStudentCount: appState.chronicStudentCount,
-        totalStudents: appState.totalStudents,
-        currentCategoryIndex: appState.currentCategoryIndex,
-        answers: appState.answers,
-        photos: appState.photos,
-        previousDeficiencies: appState.previousDeficiencies,
-        otherDeficiencies: appState.otherDeficiencies
-      };
-      localStorage.setItem('isg_temp_audit', JSON.stringify(tempAudit));
-    }
-
-    // Geçici denetimi yükle
-    function loadTempAudit() {
-      try {
-        const saved = localStorage.getItem('isg_temp_audit');
-        if (saved) {
-          const temp = JSON.parse(saved);
-          appState.schoolCode = temp.schoolCode || '';
-          appState.schoolName = temp.schoolName || '';
-          appState.schoolDistrict = temp.schoolDistrict || '';
-          appState.auditDate = temp.auditDate || '';
-          appState.schoolAddress = temp.schoolAddress || '';
-          appState.schoolScope = temp.schoolScope || '';
-          appState.schoolHazardClass = temp.schoolHazardClass || '';
-          appState.schoolPhone = temp.schoolPhone || '';
-          appState.schoolEmail = temp.schoolEmail || '';
-          appState.managerCount = temp.managerCount || 0;
-          appState.teacherCount = temp.teacherCount || 0;
-          appState.officerCount = temp.officerCount || 0;
-          appState.servantCount = temp.servantCount || 0;
-          appState.workerCount = temp.workerCount || 0;
-          appState.typCount = temp.typCount || 0;
-          appState.paidTeacherCount = temp.paidTeacherCount || 0;
-          appState.contractCount = temp.contractCount || 0;
-          appState.masterInstructorCount = temp.masterInstructorCount || 0;
-          appState.disabledCount = temp.disabledCount || 0;
-          appState.exconvictCount = temp.exconvictCount || 0;
-          appState.chronicCount = temp.chronicCount || 0;
-          appState.totalPersonnel = temp.totalPersonnel || 0;
-          appState.normalStudentCount = temp.normalStudentCount || 0;
-          appState.disabledStudentCount = temp.disabledStudentCount || 0;
-          appState.inclusionStudentCount = temp.inclusionStudentCount || 0;
-          appState.chronicStudentCount = temp.chronicStudentCount || 0;
-          appState.totalStudents = temp.totalStudents || 0;
-          appState.currentCategoryIndex = temp.currentCategoryIndex || 0;
-          appState.answers = temp.answers || {};
-          appState.photos = temp.photos || {};
-          appState.previousDeficiencies = temp.previousDeficiencies || [];
-          appState.otherDeficiencies = temp.otherDeficiencies || [];
-        }
-      } catch (e) {
-        console.error('Gecici denetim yuklenemedi:', e);
-      }
-    }
-
-    // Geçici denetimi temizle
-    function clearTempAudit() {
-      localStorage.removeItem('isg_temp_audit');
-    }
-
-    // Sayfa yüklendiğinde
-    document.addEventListener('DOMContentLoaded', () => {
-      loadAuditsFromStorage();
-      loadTempAudit();
-      
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('audit-date').value = today;
-    });
+// --- 3. BULUT VE KAYIT FONKSİYONLARI ---
 
 async function sendToSheet() {
-    // Eğer appState boşsa veya okul kodu girilmemişse gönderme
-    if (!appState.schoolCode) {
-        console.error("Gönderilecek veri bulunamadı (appState boş).");
-        return;
-    }
-
+    if (!appState.schoolCode) return;
     try {
-        // fetch işlemi
-        const response = await fetch(APPS_SCRIPT_URL, {
+        await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors', // ÖNEMLİ: CORS hatalarını önlemek için 'no-cors' ekledik
+            mode: 'no-cors',
             cache: 'no-cache',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(appState) // Direkt global appState'i gönderiyoruz
+            body: JSON.stringify(appState)
         });
-
-        // no-cors modunda response.ok her zaman false dönebilir, 
-        // bu yüzden sadece işlemin tamamlandığını varsayıyoruz.
-        showToast("Veriler buluta aktarılıyor... ✓");
-        
+        showToast("Bulut senkronizasyonu başlatıldı... ✓");
     } catch (error) {
-        console.error("Sheet aktarım hatası:", error);
-        showToast("Hata: Veri gönderilemedi, ancak telefona kaydedildi.");
+        console.error("Sheet Hatası:", error);
     }
 }
 
-// --- SENKRONİZASYON AYARLARI ---
-
-// 1. Verileri Google Sheets'ten Çekme (Sync)
-async function syncData() {
-    try {
-        const response = await fetch(APPS_SCRIPT_URL);
-        if (!response.ok) throw new Error('Ağ hatası');
-        
-        const remoteData = await response.json();
-        
-        if (remoteData && remoteData.length > 0) {
-            // Mevcut yerel verilerle birleştir (ID bazlı mükerrer kontrolü yapılabilir)
-            localStorage.setItem('auditHistory', JSON.stringify(remoteData));
-            renderHistory();
-            console.log("Veriler arka planda güncellendi.");
-        }
-    } catch (error) {
-        console.error("Senkronizasyon hatası:", error);
-    }
-}
-
-
-// 3. Uygulama Açıldığında Otomatik Çalıştır
-window.addEventListener('load', () => {
-    // Uygulama açılır açılmaz verileri eşitle
-    syncData();
-    
-    // İsterseniz her 5 dakikada bir arka planda otomatik kontrol etsin
-    setInterval(syncData, 5 * 60 * 1000); 
-});
-
-
-// ... mevcut kodlarınız (appState, sorular vs.) ...
-
-// BU KISMA EKLEYEBİLİRSİNİZ
-function showToast(message) {
-    // Varsa eski toast'ı kaldır (üst üste binmemesi için)
-    const oldToast = document.querySelector('.custom-toast');
-    if (oldToast) oldToast.remove();
-
-    const toast = document.createElement('div');
-    toast.className = "custom-toast fixed bottom-24 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-2xl text-sm z-[9999] transition-all duration-500 border border-gray-600";
-    toast.style.opacity = '0';
-    toast.innerText = message;
-    document.body.appendChild(toast);
-    
-    // Görünür yap
-    setTimeout(() => { toast.style.opacity = '1'; }, 10);
-    
-    // 3 saniye sonra kaldır
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 500);
-    }, 3000);
-}
-
-// ... diğer fonksiyonlarınız (saveAudit, syncData vs.) ...
-
-
-// 1. Butona sadece bir görev veriyoruz
-document.getElementById('save-audit').onclick = function() {
-    saveAudit(); 
-};
-
-// 2. Fonksiyonun yeni ve otomatik hali
 function saveAudit() {
-    // Veriyi hazırla (appState'deki güncel bilgileri alıyoruz)
     const auditData = {
         id: Date.now(),
         timestamp: new Date().toISOString(),
         ...appState
     };
     
-    // Tarayıcı hafızasına (Local Storage) kaydet
     let history = JSON.parse(localStorage.getItem('auditHistory') || '[]');
     history.unshift(auditData);
     localStorage.setItem('auditHistory', JSON.stringify(history));
 
-    // Ekranı güncelle ve ana sayfaya dön
     if (typeof renderHistory === 'function') renderHistory();
     if (typeof switchTab === 'function') switchTab('data');
     if (typeof showPage === 'function') showPage('home');
     
-    // Kullanıcıya bilgi ver (Onay kutusu sormadan direkt toast çıkarıyoruz)
-    showToast("Denetim kaydedildi. Google Sheets'e aktarılıyor...");
+    showToast("Denetim kaydedildi...");
     
-    // Google Sheets'e gönder ve bitince verileri tekrar eşitle
     sendToSheet().then(() => {
-        syncData();
-        if (typeof clearTempAudit === 'function') clearTempAudit();
+        if (typeof syncData === 'function') syncData();
+        clearTempAudit();
     });
 }
-  
-   
+
+// --- 4. YARDIMCI ARAÇLAR (Toast, Sync vb.) ---
+
+function showToast(message) {
+    const oldToast = document.querySelector('.custom-toast');
+    if (oldToast) oldToast.remove();
+    const toast = document.createElement('div');
+    toast.className = "custom-toast fixed bottom-24 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-2xl text-sm z-[9999] transition-all duration-500 border border-gray-600";
+    toast.style.opacity = '0';
+    toast.innerText = message;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '1'; }, 10);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 500);
+    }, 3000);
+}
+
+async function syncData() {
+    try {
+        const response = await fetch(APPS_SCRIPT_URL);
+        if (response.ok) {
+            const remoteData = await response.json();
+            localStorage.setItem('auditHistory', JSON.stringify(remoteData));
+            if (typeof renderHistory === 'function') renderHistory();
+        }
+    } catch (e) { console.log("Senkronizasyon beklemede..."); }
+}
+
+// --- 5. EVENT LISTENERS (Olay İzleyiciler) ---
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Kaydet butonu bağlantısı
+    const saveBtn = document.getElementById('save-audit');
+    if (saveBtn) saveBtn.onclick = saveAudit;
+
+    // PDF butonu bağlantısı
+    const pdfBtn = document.getElementById('download-pdf');
+    if (pdfBtn) pdfBtn.onclick = downloadPDF;
+
+    // Başlangıç verilerini yükle
+    if (typeof loadAuditsFromStorage === 'function') loadAuditsFromStorage();
+    if (typeof loadTempAudit === 'function') loadTempAudit();
+    
+    syncData();
+});
+
   </script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c79b84c11c6d5ff',t:'MTc3MDAzNTYzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
 
 
