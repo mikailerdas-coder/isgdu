@@ -2272,13 +2272,6 @@ async function downloadPDF() {
 }
 
 
-
-
-
-
-
-
-
     // Event Listeners
     document.getElementById('school-code').addEventListener('input', checkPreviousAudits);
     document.getElementById('school-name').addEventListener('input', checkPreviousAudits);
@@ -2542,20 +2535,13 @@ async function submitAudit() {
     // 1. Verileri senin orijinal yapından topla
    const finalData = {
     // ... diğer bilgiler ...
-    questions: Object.keys(answers).map(key => ({
-        id: key,
-        status: answers[key]
-    }))
+    questions: Object.keys(appState.answers).map(key => ({
+    id: key,
+    status: appState.answers[key]
+}))
 };
 
-    // Tüm radyo butonlarındaki cevapları topla
-    document.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
-        finalData.questions.push({
-            id: radio.name,
-            status: radio.value
-        });
-    });
-
+    
     if(!finalData.schoolName) {
         alert("Lütfen okul adını doldurun!");
         return;
@@ -2589,28 +2575,61 @@ async function submitAudit() {
 }
 
 // Apps Script'ten kopyaladığınız URL'yi buraya yapıştırın
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzwNOL741czfI4aGFF6U2S1DVQtgPR9tgDwHmQu_oTMQdzkM2JfY1BnRa7UNjVmkaCw/exec";
+async function submitAudit() {
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbysE9xtt1y_BelfH0yl_GI3-XuZ8HmS7Y9JfPTe0nVfPZIAuv9ZeIMMF_C0PJ52qvZO/exec";
+    const btn = document.getElementById('save-audit');
+    const originalText = btn.innerText;
 
-async function sendToSheet() {
-    // appState sizin index.txt dosyanızdaki tüm denetim verilerini tutan objedir
+    // TÜM VERİLER
+    const finalData = {
+        schoolCode: appState.schoolCode,
+        schoolName: appState.schoolName,
+        schoolDistrict: appState.schoolDistrict,
+        auditDate: appState.auditDate,
+        schoolAddress: appState.schoolAddress,
+        schoolScope: appState.schoolScope,
+        schoolHazardClass: appState.schoolHazardClass,
+        totalPersonnel: appState.totalPersonnel,
+        totalStudents: appState.totalStudents,
+
+        questions: Object.keys(appState.answers).map(key => ({
+            id: key,
+            status: appState.answers[key]
+        }))
+    };
+
+    if(!finalData.schoolName){
+        alert("Lütfen okul adını doldurun!");
+        return;
+    }
+
+    btn.innerText = "⏳ Kaydediliyor...";
+    btn.disabled = true;
+
     try {
-        const response = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify(appState)
+        await fetch(SCRIPT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(finalData)
         });
-        
-        if (response.ok) {
-            alert("Veriler Google Sheet'e başarıyla aktarıldı!");
-        }
-    } catch (error) {
-        console.error("Hata:", error);
-        alert("Aktarım sırasında bir hata oluştu.");
+
+        alert("✅ Denetim başarıyla kaydedildi!");
+        clearTempAudit();
+        location.reload();
+
+    } catch (err) {
+        alert("Hata oluştu: " + err);
+        btn.innerText = originalText;
+        btn.disabled = false;
     }
 }
+
+
    
   </script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c79b84c11c6d5ff',t:'MTc3MDAzNTYzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
 
 
