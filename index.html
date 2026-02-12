@@ -2272,13 +2272,6 @@ async function downloadPDF() {
 }
 
 
-
-
-
-
-
-
-
     // Event Listeners
     document.getElementById('school-code').addEventListener('input', checkPreviousAudits);
     document.getElementById('school-name').addEventListener('input', checkPreviousAudits);
@@ -2413,15 +2406,8 @@ async function downloadPDF() {
       showPage('audit');
     });
 
-    document.getElementById('save-audit').addEventListener('click', async () => {
-    // 1. Önce veriyi tarayıcının yerel hafızasına kaydeder
-    saveAudit(); 
+ 
     
-    // 2. Kullanıcıya sorar ve onay alırsa Google Sheets'e gönderir
-    if (confirm("Denetim tarayıcıya kaydedildi. Verileri Google Sheets (E-Tablo) dosyasına da aktarmak ister misiniz?")) {
-        await sendToSheet();
-    }
-});
     document.getElementById('download-pdf').addEventListener('click', downloadPDF);
 
     document.getElementById('camera-input').addEventListener('change', (e) => handlePhotoSelect(e.target.files[0]));
@@ -2534,63 +2520,6 @@ async function downloadPDF() {
     });
 
 
-async function submitAudit() {
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbysE9xtt1y_BelfH0yl_GI3-XuZ8HmS7Y9JfPTe0nVfPZIAuv9ZeIMMF_C0PJ52qvZO/exec";
-    const btn = document.getElementById('save-audit');
-    const originalText = btn.innerText;
-
-    // 1. Verileri senin orijinal yapından topla
-   const finalData = {
-    // ... diğer bilgiler ...
-    questions: Object.keys(answers).map(key => ({
-        id: key,
-        status: answers[key]
-    }))
-};
-
-    // Tüm radyo butonlarındaki cevapları topla
-    document.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
-        finalData.questions.push({
-            id: radio.name,
-            status: radio.value
-        });
-    });
-
-    if(!finalData.schoolName) {
-        alert("Lütfen okul adını doldurun!");
-        return;
-    }
-
-    btn.innerText = "⏳ Kaydediliyor...";
-    btn.disabled = true;
-
-    // 2. Google Script'e GÖNDER (GitHub uyumlu yöntem)
-    try {
-        await fetch(SCRIPT_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(finalData)
-        });
-        
-        alert("✅ Başarıyla kaydedildi!");
-        btn.innerText = originalText;
-        btn.disabled = false;
-        
-        // Formu temizle (senin orijinal fonksiyonun varsa çalışır)
-        if(typeof clearTempAudit === 'function') clearTempAudit();
-        location.reload(); 
-        
-    } catch (err) {
-        alert("Hata oluştu: " + err);
-        btn.innerText = originalText;
-        btn.disabled = false;
-    }
-}
-
-// Apps Script'ten kopyaladığınız URL'yi buraya yapıştırın
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxrMMq2hK5m-EyL49kOa6Abw-mWjjsiwNwoftmFUtH2Lk8QGY9iQB4v-rth-AGKstWH/exec";
-
 async function sendToSheet() {
     // appState sizin index.txt dosyanızdaki tüm denetim verilerini tutan objedir
     try {
@@ -2693,11 +2622,47 @@ function showToast(message) {
 }
 
 // ... diğer fonksiyonlarınız (saveAudit, syncData vs.) ...
-   
+
+
+// 1. Butona sadece bir görev veriyoruz
+document.getElementById('save-audit').onclick = function() {
+    saveAudit(); 
+};
+
+// 2. Fonksiyonun yeni ve otomatik hali
+function saveAudit() {
+    // Veriyi hazırla (appState'deki güncel bilgileri alıyoruz)
+    const auditData = {
+        id: Date.now(),
+        timestamp: new Date().toISOString(),
+        ...appState
+    };
+    
+    // Tarayıcı hafızasına (Local Storage) kaydet
+    let history = JSON.parse(localStorage.getItem('auditHistory') || '[]');
+    history.unshift(auditData);
+    localStorage.setItem('auditHistory', JSON.stringify(history));
+
+    // Ekranı güncelle ve ana sayfaya dön
+    if (typeof renderHistory === 'function') renderHistory();
+    if (typeof switchTab === 'function') switchTab('data');
+    if (typeof showPage === 'function') showPage('home');
+    
+    // Kullanıcıya bilgi ver (Onay kutusu sormadan direkt toast çıkarıyoruz)
+    showToast("Denetim kaydedildi. Google Sheets'e aktarılıyor...");
+    
+    // Google Sheets'e gönder ve bitince verileri tekrar eşitle
+    sendToSheet().then(() => {
+        syncData();
+        if (typeof clearTempAudit === 'function') clearTempAudit();
+    });
+}
+  
    
   </script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c79b84c11c6d5ff',t:'MTc3MDAzNTYzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
 
 
