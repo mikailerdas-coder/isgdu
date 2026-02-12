@@ -2607,10 +2607,96 @@ async function sendToSheet() {
         alert("Aktarım sırasında bir hata oluştu.");
     }
 }
+
+
+// --- SENKRONİZASYON AYARLARI ---
+
+// 1. Verileri Google Sheets'ten Çekme (Sync)
+async function syncData() {
+    try {
+        const response = await fetch(APPS_SCRIPT_URL);
+        if (!response.ok) throw new Error('Ağ hatası');
+        
+        const remoteData = await response.json();
+        
+        if (remoteData && remoteData.length > 0) {
+            // Mevcut yerel verilerle birleştir (ID bazlı mükerrer kontrolü yapılabilir)
+            localStorage.setItem('auditHistory', JSON.stringify(remoteData));
+            renderHistory();
+            console.log("Veriler arka planda güncellendi.");
+        }
+    } catch (error) {
+        console.error("Senkronizasyon hatası:", error);
+    }
+}
+
+// 2. saveAudit Fonksiyonunu Güncelleme (Otomatik Gönderim ve Onaysız Kayıt)
+function saveAudit() {
+    const auditData = {
+        id: Date.now(),
+        timestamp: new Date().toISOString(),
+        ...appState
+    };
+    
+    // Yerel hafızaya kaydet
+    let history = JSON.parse(localStorage.getItem('auditHistory') || '[]');
+    history.unshift(auditData); // En başa ekle
+    localStorage.setItem('auditHistory', JSON.stringify(history));
+
+    // Arayüzü güncelle
+    renderHistory();
+    switchTab('data');
+    
+    // Onay almadan arka planda gönder
+    showToast("Denetim kaydedildi ve eşitleniyor...");
+    
+    // Veriyi gönder ve işlem bitince tekrar senkronize et
+    sendToSheet(auditData).then(() => {
+        syncData(); // Gönderimden sonra güncel listeyi çek
+    });
+}
+
+// 3. Uygulama Açıldığında Otomatik Çalıştır
+window.addEventListener('load', () => {
+    // Uygulama açılır açılmaz verileri eşitle
+    syncData();
+    
+    // İsterseniz her 5 dakikada bir arka planda otomatik kontrol etsin
+    setInterval(syncData, 5 * 60 * 1000); 
+});
+
+
+// ... mevcut kodlarınız (appState, sorular vs.) ...
+
+// BU KISMA EKLEYEBİLİRSİNİZ
+function showToast(message) {
+    // Varsa eski toast'ı kaldır (üst üste binmemesi için)
+    const oldToast = document.querySelector('.custom-toast');
+    if (oldToast) oldToast.remove();
+
+    const toast = document.createElement('div');
+    toast.className = "custom-toast fixed bottom-24 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-2xl text-sm z-[9999] transition-all duration-500 border border-gray-600";
+    toast.style.opacity = '0';
+    toast.innerText = message;
+    document.body.appendChild(toast);
+    
+    // Görünür yap
+    setTimeout(() => { toast.style.opacity = '1'; }, 10);
+    
+    // 3 saniye sonra kaldır
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 500);
+    }, 3000);
+}
+
+// ... diğer fonksiyonlarınız (saveAudit, syncData vs.) ...
+   
    
   </script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c79b84c11c6d5ff',t:'MTc3MDAzNTYzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
 
 
