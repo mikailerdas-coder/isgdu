@@ -2272,6 +2272,13 @@ async function downloadPDF() {
 }
 
 
+
+
+
+
+
+
+
     // Event Listeners
     document.getElementById('school-code').addEventListener('input', checkPreviousAudits);
     document.getElementById('school-name').addEventListener('input', checkPreviousAudits);
@@ -2526,40 +2533,84 @@ async function downloadPDF() {
       document.getElementById('audit-date').value = today;
     });
 
-// GOOGLE SHEETS GÖNDERME FONKSİYONU
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxOZvNrLsg7lx4qFFFBp0KtbxDLmHrnrPyho-BZdo2A2ljSIl2P8WJKa7wcwbSZt6cM/exec";
 
-async function sendToSheet() {
-  try {
+async function submitAudit() {
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbysE9xtt1y_BelfH0yl_GI3-XuZ8HmS7Y9JfPTe0nVfPZIAuv9ZeIMMF_C0PJ52qvZO/exec";
+    const btn = document.getElementById('save-audit');
+    const originalText = btn.innerText;
 
-    const response = await fetch(SCRIPT_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(appState)
+    // 1. Verileri senin orijinal yapından topla
+   const finalData = {
+    // ... diğer bilgiler ...
+    questions: Object.keys(answers).map(key => ({
+        id: key,
+        status: answers[key]
+    }))
+};
+
+    // Tüm radyo butonlarındaki cevapları topla
+    document.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
+        finalData.questions.push({
+            id: radio.name,
+            status: radio.value
+        });
     });
 
-    const result = await response.json();
-
-    if(result.result === "success"){
-      alert("✅ Denetim Google Sheet'e kaydedildi");
-      clearTempAudit();
-    }else{
-      alert("❌ Sheet hata verdi: " + result.message);
+    if(!finalData.schoolName) {
+        alert("Lütfen okul adını doldurun!");
+        return;
     }
 
-  } catch (error) {
-    alert("Bağlantı hatası: " + error);
-  }
+    btn.innerText = "⏳ Kaydediliyor...";
+    btn.disabled = true;
+
+    // 2. Google Script'e GÖNDER (GitHub uyumlu yöntem)
+    try {
+        await fetch(SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(finalData)
+        });
+        
+        alert("✅ Başarıyla kaydedildi!");
+        btn.innerText = originalText;
+        btn.disabled = false;
+        
+        // Formu temizle (senin orijinal fonksiyonun varsa çalışır)
+        if(typeof clearTempAudit === 'function') clearTempAudit();
+        location.reload(); 
+        
+    } catch (err) {
+        alert("Hata oluştu: " + err);
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
 }
 
+// Apps Script'ten kopyaladığınız URL'yi buraya yapıştırın
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzwNOL741czfI4aGFF6U2S1DVQtgPR9tgDwHmQu_oTMQdzkM2JfY1BnRa7UNjVmkaCw/exec";
 
+async function sendToSheet() {
+    // appState sizin index.txt dosyanızdaki tüm denetim verilerini tutan objedir
+    try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(appState)
+        });
+        
+        if (response.ok) {
+            alert("Veriler Google Sheet'e başarıyla aktarıldı!");
+        }
+    } catch (error) {
+        console.error("Hata:", error);
+        alert("Aktarım sırasında bir hata oluştu.");
+    }
+}
    
   </script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c79b84c11c6d5ff',t:'MTc3MDAzNTYzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
-
 
 
 
