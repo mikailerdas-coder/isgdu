@@ -2519,24 +2519,34 @@ async function downloadPDF() {
       document.getElementById('audit-date').value = today;
     });
 
-
 async function sendToSheet() {
-    // appState sizin index.txt dosyanızdaki tüm denetim verilerini tutan objedir
+    // Eğer appState boşsa veya okul kodu girilmemişse gönderme
+    if (!appState.schoolCode) {
+        console.error("Gönderilecek veri bulunamadı (appState boş).");
+        return;
+    }
+
     try {
+        // fetch işlemi
         const response = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify(appState)
+            mode: 'no-cors', // ÖNEMLİ: CORS hatalarını önlemek için 'no-cors' ekledik
+            cache: 'no-cache',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(appState) // Direkt global appState'i gönderiyoruz
         });
+
+        // no-cors modunda response.ok her zaman false dönebilir, 
+        // bu yüzden sadece işlemin tamamlandığını varsayıyoruz.
+        showToast("Veriler buluta aktarılıyor... ✓");
         
-        if (response.ok) {
-            alert("Veriler Google Sheet'e başarıyla aktarıldı!");
-        }
     } catch (error) {
-        console.error("Hata:", error);
-        alert("Aktarım sırasında bir hata oluştu.");
+        console.error("Sheet aktarım hatası:", error);
+        showToast("Hata: Veri gönderilemedi, ancak telefona kaydedildi.");
     }
 }
-
 
 // --- SENKRONİZASYON AYARLARI ---
 
@@ -2559,33 +2569,6 @@ async function syncData() {
     }
 }
 
-// 2. saveAudit Fonksiyonunu Güncelleme (Otomatik Gönderim ve Onaysız Kayıt)
-function saveAudit() {
-    const auditData = {
-        id: Date.now(),
-        timestamp: new Date().toISOString(),
-        ...appState
-    };
-    
-    // Yerel hafızaya kaydet
-    let history = JSON.parse(localStorage.getItem('auditHistory') || '[]');
-    history.unshift(auditData); // En başa ekle
-    localStorage.setItem('auditHistory', JSON.stringify(history));
-
-showToast("Denetim kaydedildi ve Google Sheet'e gönderiliyor...");
- 
-    // Arayüzü güncelle
-    renderHistory();
-    switchTab('data');
-    
-    // Onay almadan arka planda gönder
-    showToast("Denetim kaydedildi ve eşitleniyor...");
-    
-    // Veriyi gönder ve işlem bitince tekrar senkronize et
-    sendToSheet(auditData).then(() => {
-        syncData(); // Gönderimden sonra güncel listeyi çek
-    });
-}
 
 // 3. Uygulama Açıldığında Otomatik Çalıştır
 window.addEventListener('load', () => {
@@ -2662,6 +2645,7 @@ function saveAudit() {
   </script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c79b84c11c6d5ff',t:'MTc3MDAzNTYzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
 
 
